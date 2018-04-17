@@ -13,10 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Entity (tableName = ExerciseTable.NAME,
-        foreignKeys = @ForeignKey(entity = RoutineDay.class,
-                                  parentColumns = RoutineDayTable.Cols.ROUTINE_DAY_ID,
-                                  childColumns = ExerciseTable.Cols.EXERCISE_ID))
+
+@Entity(tableName = ExerciseTable.NAME,
+        foreignKeys = @ForeignKey(
+                entity = RoutineDay.class,
+                parentColumns = RoutineDayTable.Cols.ROUTINE_DAY_ID,
+                childColumns = ExerciseTable.Cols.EXERCISE_ID
+        ))
 public abstract class Exercise {
 
     public static final String REPPED = "repped";
@@ -25,20 +28,20 @@ public abstract class Exercise {
 
     @PrimaryKey
     @ColumnInfo(name = ExerciseTable.Cols.EXERCISE_ID)
-    private UUID mId;
+    private UUID id;
 
     @ColumnInfo(name = ExerciseTable.Cols.EXERCISE_NAME)
-    private String mName;
+    private String name;
 
     @ColumnInfo(name = ExerciseTable.Cols.EXERCISE_NUM)
-    private int mNumber; // is the number of the exercise in the routine - might not be needed
+    private int number; // is the number of the exercise in the routine - might not be needed
     //private int mNumberSets;
 
     @ColumnInfo(name = ExerciseTable.Cols.EXERCISE_TYPE)
-    private String mType;
+    private String type;
 
     @Ignore
-    private List<Set> mSets;
+    private List<Set> sets;
 
 
     public Exercise (String name, String type, int number) {
@@ -46,37 +49,37 @@ public abstract class Exercise {
     }
 
     public Exercise (UUID id, String name, String type, int number) {
-        mId = id;
+        this.id = id;
         //mNumberSets = 3;
-        mName = name;
-        mType = type;
-        mNumber = number;
-        mSets = new ArrayList<>();
+        this.name = name;
+        this.type = type;
+        this.number = number;
+        this.sets = new ArrayList<>();
 
         // Initialize our 5 sets
         for (int i=0; i<MAX_SETS; i++) {
-            mSets.add(Set.newInstance(mType, i+1));
+            this.sets.add(Set.newInstance(this.type, i+1));
         }
     }
 
     public UUID getId() {
-        return mId;
+        return this.id;
     }
 
     public String getName() {
-        return mName;
+        return this.name;
     }
 
     public void setName(String name) {
-        mName = name;
+        this.name = name;
     }
 
     public int getNumber() {
-        return mNumber;
+        return this.number;
     }
 
     public void setNumber(int number) {
-        mNumber = number;
+        this.number = number;
     }
 
     /* public int getNumberSets() {
@@ -84,19 +87,19 @@ public abstract class Exercise {
     } */
 
     public String getType() {
-        return mType;
+        return this.type;
     }
 
     public void setType (String type) {
-        mType = type;
+        this.type = type;
     }
 
     public List<Set> getSets() {
-        return mSets;
+        return this.sets;
     }
 
     public Set getSet (UUID id) {
-        for (Set set : mSets) {
+        for (Set set : this.sets) {
             if (set.getId().equals(id)) {
                 return set;
             }

@@ -44,20 +44,19 @@ public class WorkoutDbSchema {
         public static final class Cols {
             public static final String SET_ID = "set_id";
             public static final String SET_NUM = "set_number";
+            public static final String SET_TARGET_WEIGHT = "set_target_weight";
             public static final String SET_TARGET_MEASUREMENT = "set_target_measurement";
-            public static final String EXERCISE_TYPE = "exercise_type";
+            public static final String SET_ACTUAL_MEASUREMENT = "set_actual_measurement";
         }
     }
 
     public static final class ReppedSetTable {
-
         public static final String NAME = "repped_sets";
-
-        public static final class Cols {
-            public static final String REPPED_EXERCISE_ID = "repped_set_id";
-            public static final String EXERCISE_NAME = "exercise_name";
-            public static final String EXERCISE_NUM = "exercise_number";
-            public static final String EXERCISE_TYPE = "exercise_type";
-        }
     }
+
+    public static final class TimedSetTable {
+        public static final String NAME = "timed_sets";
+    }
+
+
 }

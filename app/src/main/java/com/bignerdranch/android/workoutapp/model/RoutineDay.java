@@ -13,24 +13,27 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Entity (tableName = RoutineDayTable.NAME,
-         foreignKeys = @ForeignKey(entity = Routine.class,
-                                   parentColumns = RoutineTable.Cols.ROUTINE_ID,
-                                   childColumns = RoutineDayTable.Cols.ROUTINE_DAY_ID))
+
+@Entity(tableName = RoutineDayTable.NAME,
+        foreignKeys = @ForeignKey(
+                entity = Routine.class,
+                parentColumns = RoutineTable.Cols.ROUTINE_ID,
+                childColumns = RoutineDayTable.Cols.ROUTINE_DAY_ID
+        ))
 public class RoutineDay {
 
     @PrimaryKey
     @ColumnInfo(name = RoutineDayTable.Cols.ROUTINE_DAY_ID)
-    private UUID mId;
+    private UUID id;
 
     @ColumnInfo(name = RoutineDayTable.Cols.ROUTINE_DAY_NUM)
-    private int mDayNumber;
+    private int dayNumber;
 
     @ColumnInfo(name = RoutineDayTable.Cols.ROUTINE_DAY_DATE)
-    private Date mDate; // date of the workout day
+    private Date date; // date of the workout day
 
     @Ignore
-    private List<Exercise> mExercises;
+    private List<Exercise> exercises;
 
 
     public RoutineDay(int dayNumber) {
@@ -38,45 +41,45 @@ public class RoutineDay {
     }
 
     public RoutineDay (UUID id, int dayNumber) {
-        mId = id;
-        mDayNumber = dayNumber;
-        mDate = new Date();
+        this.id = id;
+        this.dayNumber = dayNumber;
+        this.date = new Date();
     }
 
     public UUID getId() {
-        return mId;
+        return this.id;
     }
 
     public int getDayNumber() {
-        return mDayNumber;
+        return this.dayNumber;
     }
 
     public void setDayNumber(int dayNumber) {
-        mDayNumber = dayNumber;
+        this.dayNumber = dayNumber;
     }
 
     public Date getDate() {
-        return mDate;
+        return this.date;
     }
 
     public void setDate(Date date) {
-        mDate = date;
+        this.date = date;
     }
 
     public void addExercise (Exercise e) {
-        mExercises.add(e);
+        this.exercises.add(e);
     }
 
     public void removeExercise (Exercise e) {
-        mExercises.remove(e);
+        this.exercises.remove(e);
     }
 
     public List<Exercise> getExercises() {
-        return mExercises;
+        return this.exercises;
     }
 
     public Exercise getExercise (UUID id) {
-        for (Exercise exercise : mExercises) {
+        for (Exercise exercise : this.exercises) {
             if (exercise.getId().equals(id)) {
                 return exercise;
             }

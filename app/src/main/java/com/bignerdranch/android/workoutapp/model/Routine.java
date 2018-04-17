@@ -17,16 +17,16 @@ public class Routine {
 
     @PrimaryKey // Room can assign automatic IDs to entities with @PrimaryKey (autoGenerate=true)
     @ColumnInfo(name = RoutineTable.Cols.ROUTINE_ID)
-    private UUID mId;
+    private UUID id;
 
     @ColumnInfo(name = RoutineTable.Cols.ROUTINE_NAME)
-    private String mName;
+    private String name;
 
     @ColumnInfo(name = RoutineTable.Cols.ROUTINE_DATE_CREATED)
-    private Date mDateCreated; // date the routine was created
+    private Date dateCreated; // date the routine was created
 
     @Ignore
-    private List<RoutineDay> mRoutineDays;
+    private List<RoutineDay> routineDays;
 
 
     public Routine (String name) {
@@ -34,45 +34,45 @@ public class Routine {
     }
 
     public Routine (UUID id, String name) {
-        mId = id;
-        mName = name;
-        mDateCreated = new Date();
+        this.id = id;
+        this.name = name;
+        this.dateCreated = new Date();
     }
 
     public UUID getId() {
-        return mId;
+        return this.id;
     }
 
     public String getName() {
-        return mName;
+        return this.name;
     }
 
     public void setName(String name) {
-        mName = name;
+        this.name = name;
     }
 
     public Date getDateCreated() {
-        return mDateCreated;
+        return this.dateCreated;
     }
 
     public void setDateCreated (Date dateCreated) {
-        mDateCreated = dateCreated;
+        this.dateCreated = dateCreated;
     }
 
     public void addRoutineDay (RoutineDay routineDay) {
-        mRoutineDays.add(routineDay);
+        this.routineDays.add(routineDay);
     }
 
     public void removeRoutineDay (RoutineDay routineDay) {
-        mRoutineDays.remove(routineDay);
+        this.routineDays.remove(routineDay);
     }
 
     public List<RoutineDay> getRoutineDays() {
-        return mRoutineDays;
+        return this.routineDays;
     }
 
     public RoutineDay getRoutineDay (UUID id) {
-        for (RoutineDay routineDay : mRoutineDays) {
+        for (RoutineDay routineDay : this.routineDays) {
             if (routineDay.getId().equals(id)) {
                 return routineDay;
             }
