@@ -15,12 +15,19 @@ import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.ExerciseTabl
         foreignKeys = @ForeignKey(
                 entity = Exercise.class,
                 parentColumns = ExerciseTable.Cols.EXERCISE_ID,
-                childColumns = SetTable.Cols.SET_ID
+                childColumns = SetTable.Cols.PARENT_EXERCISE_ID
         ))
 public class TimedSet extends Set<Date> {
 
-    public TimedSet (int setNumber) {
-        super(setNumber, 0);
+    public TimedSet() {
+    }
+
+    public TimedSet (int id, int exerciseId, int setNumber, int targetWeight, Date targetMeasurement, Date actualMeasurement) {
+        super(id, exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
+    }
+
+    public TimedSet (int exerciseId, int setNumber) {
+        super(exerciseId, setNumber, 0);
         this.targetMeasurement = new GregorianCalendar(0, 0, 0, 0, 0, 30).getTime();
     }
 }

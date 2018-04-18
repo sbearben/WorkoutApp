@@ -1,5 +1,7 @@
 package com.bignerdranch.android.workoutapp.database;
 
+import com.bignerdranch.android.workoutapp.model.Exercise;
+
 public class WorkoutDbSchema {
 
     public static final class RoutineTable {
@@ -19,9 +21,11 @@ public class WorkoutDbSchema {
         public static final String NAME = "routine_days";
 
         public static final class Cols {
-            public static final String ROUTINE_DAY_ID = "routine_id";
+            public static final String ROUTINE_DAY_ID = "routine_day_id";
+            public static final String PARENT_ROUTINE_ID = RoutineTable.Cols.ROUTINE_ID;
             public static final String ROUTINE_DAY_NUM = "routine_day_number";
             public static final String ROUTINE_DAY_DATE = "routine_day_date_performed";
+            public static final String ROUTINE_DAY_COMPLETED = "routine_day_completed";
         }
     }
 
@@ -31,6 +35,7 @@ public class WorkoutDbSchema {
 
         public static final class Cols {
             public static final String EXERCISE_ID = "exercise_id";
+            public static final String PARENT_ROUTINE_DAY_ID = RoutineDayTable.Cols.ROUTINE_DAY_ID;
             public static final String EXERCISE_NAME = "exercise_name";
             public static final String EXERCISE_NUM = "exercise_number";
             public static final String EXERCISE_TYPE = "exercise_type";
@@ -43,6 +48,7 @@ public class WorkoutDbSchema {
 
         public static final class Cols {
             public static final String SET_ID = "set_id";
+            public static final String PARENT_EXERCISE_ID = ExerciseTable.Cols.EXERCISE_ID;
             public static final String SET_NUM = "set_number";
             public static final String SET_TARGET_WEIGHT = "set_target_weight";
             public static final String SET_TARGET_MEASUREMENT = "set_target_measurement";

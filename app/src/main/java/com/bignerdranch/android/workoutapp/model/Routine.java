@@ -15,9 +15,10 @@ import java.util.UUID;
 @Entity (tableName = RoutineTable.NAME) // Caution - table names in SQLLite are case-INsensitive
 public class Routine {
 
-    @PrimaryKey // Room can assign automatic IDs to entities with @PrimaryKey (autoGenerate=true)
+    @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = RoutineTable.Cols.ROUTINE_ID)
-    private UUID id;
+    private int id;
+    //private UUID id;
 
     @ColumnInfo(name = RoutineTable.Cols.ROUTINE_NAME)
     private String name;
@@ -29,7 +30,7 @@ public class Routine {
     private List<RoutineDay> routineDays;
 
 
-    public Routine (String name) {
+    /*public Routine (String name) {
         this(UUID.randomUUID(), name);
     }
 
@@ -37,10 +38,29 @@ public class Routine {
         this.id = id;
         this.name = name;
         this.dateCreated = new Date();
+    }*/
+
+    public Routine() {
     }
 
-    public UUID getId() {
+    public Routine (int id, String name, Date dateCreated) {
+        this.id = id;
+        this.name = name;
+        this.dateCreated = dateCreated;
+    }
+
+    public Routine (String name) {
+        this.name = name;
+        this.dateCreated = new Date();
+    }
+
+
+    public int getId() {
         return this.id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -71,9 +91,9 @@ public class Routine {
         return this.routineDays;
     }
 
-    public RoutineDay getRoutineDay (UUID id) {
+    public RoutineDay getRoutineDay (int id) {
         for (RoutineDay routineDay : this.routineDays) {
-            if (routineDay.getId().equals(id)) {
+            if (routineDay.getId() == id) {
                 return routineDay;
             }
         }

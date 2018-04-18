@@ -9,9 +9,12 @@ import java.util.UUID;
 
 public abstract class Set<T> {
 
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = SetTable.Cols.SET_ID)
-    private UUID id;
+    private int id;
+
+    @ColumnInfo(name = SetTable.Cols.PARENT_EXERCISE_ID)
+    private int exerciseId;
 
     @ColumnInfo(name = SetTable.Cols.SET_NUM)
     private int setNumber;
@@ -26,29 +29,55 @@ public abstract class Set<T> {
     private T actualMeasurement;
 
 
-    public static Set newInstance (String type, int setNumber) {
+    public static Set newInstance (int exerciseId, String type, int setNumber) {
         switch(type) {
             case Exercise.REPPED:
-                return new ReppedSet(setNumber);
+                return new ReppedSet(exerciseId, setNumber);
             case Exercise.TIMED:
-                return new TimedSet(setNumber);
+                return new TimedSet(exerciseId, setNumber);
             default:
                 return null;
         }
     }
 
-    public Set (int setNumber, int targetWeight) {
+    /*public Set (int setNumber, int targetWeight) {
         this (UUID.randomUUID(), setNumber, targetWeight);
+    }*/
+
+    public Set() {
     }
 
-    public Set (UUID id, int setNumber, int targetWeight) {
+    public Set (int id, int exerciseId, int setNumber, int targetWeight, T targetMeasurement, T actualMeasurement) {
+        this.id = id;
+        this.exerciseId = exerciseId;
+        this.setNumber = setNumber;
+        this.targetWeight = targetWeight;
+        this.targetMeasurement = targetMeasurement;
+        this.actualMeasurement = actualMeasurement;
+    }
+
+    public Set (int exerciseId, int setNumber, int targetWeight) {
+        this.exerciseId = exerciseId;
         this.setNumber = setNumber;
         this.targetWeight = targetWeight;
         this.actualMeasurement = null;
     }
 
-    public UUID getId() {
+
+    public int getId() {
         return this.id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getExerciseId() {
+        return this.exerciseId;
+    }
+
+    public void setExerciseId(int exerciseId) {
+        this.exerciseId = exerciseId;
     }
 
     public int getSetNumber() {

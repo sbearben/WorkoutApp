@@ -18,7 +18,7 @@ import java.util.UUID;
         foreignKeys = @ForeignKey(
                 entity = RoutineDay.class,
                 parentColumns = RoutineDayTable.Cols.ROUTINE_DAY_ID,
-                childColumns = ExerciseTable.Cols.EXERCISE_ID
+                childColumns = ExerciseTable.Cols.PARENT_ROUTINE_DAY_ID
         ))
 public abstract class Exercise {
 
@@ -26,9 +26,12 @@ public abstract class Exercise {
     public static final String TIMED = "timed";
     public static final int MAX_SETS = 5;
 
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = ExerciseTable.Cols.EXERCISE_ID)
-    private UUID id;
+    private int id;
+
+    @ColumnInfo(name = ExerciseTable.Cols.PARENT_ROUTINE_DAY_ID)
+    private int routineDayId;
 
     @ColumnInfo(name = ExerciseTable.Cols.EXERCISE_NAME)
     private String name;
@@ -44,27 +47,59 @@ public abstract class Exercise {
     private List<Set> sets;
 
 
-    public Exercise (String name, String type, int number) {
+    /*public Exercise (String name, String type, int number) {
         this(UUID.randomUUID(), name, type, number);
+    }*/
+
+    public Exercise() {
     }
 
-    public Exercise (UUID id, String name, String type, int number) {
-        this.id = id;
+    public Exercise (int id, int routineDayId, String name, int number, String type) {
         //mNumberSets = 3;
+        this.id = id;
+        this.routineDayId = routineDayId;
         this.name = name;
-        this.type = type;
         this.number = number;
-        this.sets = new ArrayList<>();
+        this.type = type;
 
+        initializeSets();
+    }
+
+    public Exercise (int routineDayId, String name, int number, String type) {
+        //mNumberSets = 3;
+        this.routineDayId = routineDayId;
+        this.name = name;
+        this.number = number;
+        this.type = type;
+
+        initializeSets();
+    }
+
+    private void initializeSets() {
         // Initialize our 5 sets
+        this.sets = new ArrayList<>();
         for (int i=0; i<MAX_SETS; i++) {
-            this.sets.add(Set.newInstance(this.type, i+1));
+            this.sets.add(Set.newInstance(id, this.type, i+1));
         }
     }
 
-    public UUID getId() {
+
+    public int getId() {
         return this.id;
     }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getRoutineDayId() {
+        return this.routineDayId;
+    }
+
+    public void setRoutineDayId(int routineDayId) {
+        this.routineDayId = routineDayId;
+    }
+
 
     public String getName() {
         return this.name;
@@ -98,9 +133,9 @@ public abstract class Exercise {
         return this.sets;
     }
 
-    public Set getSet (UUID id) {
+    public Set getSet (int id) {
         for (Set set : this.sets) {
-            if (set.getId().equals(id)) {
+            if (set.getId() == id) {
                 return set;
             }
         }

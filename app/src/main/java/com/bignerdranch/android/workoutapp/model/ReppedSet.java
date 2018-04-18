@@ -12,12 +12,19 @@ import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.ExerciseTabl
         foreignKeys = @ForeignKey(
                 entity = Exercise.class,
                 parentColumns = ExerciseTable.Cols.EXERCISE_ID,
-                childColumns = SetTable.Cols.SET_ID
+                childColumns = SetTable.Cols.PARENT_EXERCISE_ID
         ))
 public class ReppedSet extends Set<Integer> {
 
-    public ReppedSet (int setNumber) {
-        super(setNumber, 45);
+    public ReppedSet() {
+    }
+
+    public ReppedSet (int id, int exerciseId, int setNumber, int targetWeight, Integer targetMeasurement, Integer actualMeasurement) {
+        super(id, exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
+    }
+
+    public ReppedSet (int exerciseId, int setNumber) {
+        super(exerciseId, setNumber, 45);
         this.targetMeasurement = 8;
     }
 }
