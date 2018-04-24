@@ -1,3 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">WorkoutApp</string>
+
+    <string-array name="test_routines_array">
+        <item>Routine 1</item>
+        <item>Routine 2</item>
+        <item>Routine 3</item>
+    </string-array>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_routines">Routines</string>
+    <string name="menu_history">History</string>
 </resources>

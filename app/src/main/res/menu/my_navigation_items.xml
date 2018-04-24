@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/action_search"
+        android:enabled="true"
+        android:title="@string/menu_home"
+        android:icon="@drawable/ic_bottomnav_home"
+        app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_settings"
+        android:enabled="true"
+        android:title="@string/menu_routines"
+        android:icon="@drawable/ic_bottomnav_routines"
+        app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_navigation"
+        android:enabled="true"
+        android:title="@string/menu_history"
+        android:icon="@drawable/ic_bottomnav_history"
+        app:showAsAction="ifRoom" />
+</menu>

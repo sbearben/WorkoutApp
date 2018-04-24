@@ -1,5 +1,6 @@
 package com.bignerdranch.android.workoutapp.database.dao;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
@@ -13,10 +14,10 @@ import java.util.List;
 public interface ReppedSetDao {
 
     @Query("SELECT * FROM repped_sets")
-    List<ReppedSet> getAllReppedSets();
+    LiveData<List<ReppedSet>> getAllReppedSets();
 
     @Query("SELECT * FROM repped_sets WHERE set_id = :id")
-    ReppedSet getReppedSet(int id);
+    LiveData<ReppedSet> getReppedSet(int id);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAllReppedSets(List<ReppedSet> reppedSets);

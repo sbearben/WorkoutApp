@@ -1,5 +1,6 @@
 package com.bignerdranch.android.workoutapp.database.dao;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
@@ -13,10 +14,10 @@ import java.util.List;
 public interface TimedSetDao {
 
     @Query("SELECT * FROM timed_sets")
-    List<TimedSet> getAllTimedSets();
+    LiveData<List<TimedSet>> getAllTimedSets();
 
     @Query("SELECT * FROM timed_sets WHERE set_id = :id")
-    TimedSet geTimedSet(int id);
+    LiveData<TimedSet> getTimedSet(int id);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAllTimedSets(List<TimedSet> timedSets);

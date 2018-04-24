@@ -4,6 +4,7 @@ import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 
 import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.RoutineDayTable;
@@ -14,11 +15,12 @@ import java.util.List;
 
 
 @Entity(tableName = RoutineDayTable.NAME,
-        foreignKeys = @ForeignKey(
+        foreignKeys = { @ForeignKey(
                 entity = Routine.class,
                 parentColumns = RoutineTable.Cols.ROUTINE_ID,
-                childColumns = RoutineDayTable.Cols.PARENT_ROUTINE_ID
-        ))
+                childColumns = RoutineDayTable.Cols.PARENT_ROUTINE_ID)},
+        indices = { @Index(value = RoutineDayTable.Cols.PARENT_ROUTINE_ID)}
+        )
 public class RoutineDay {
 
     @PrimaryKey(autoGenerate = true)
@@ -51,6 +53,7 @@ public class RoutineDay {
         this.date = new Date();
     }*/
 
+    @Ignore
     public RoutineDay() {
     }
 
@@ -62,6 +65,7 @@ public class RoutineDay {
         this.completed = completed;
     }
 
+    @Ignore
     public RoutineDay (int routineId, int dayNumber) {
         this.routineId = routineId;
         this.dayNumber = dayNumber;

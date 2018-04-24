@@ -4,6 +4,7 @@ import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 
 import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.ExerciseTable;
@@ -15,12 +16,13 @@ import java.util.UUID;
 
 
 @Entity(tableName = ExerciseTable.NAME,
-        foreignKeys = @ForeignKey(
+        foreignKeys = { @ForeignKey(
                 entity = RoutineDay.class,
                 parentColumns = RoutineDayTable.Cols.ROUTINE_DAY_ID,
-                childColumns = ExerciseTable.Cols.PARENT_ROUTINE_DAY_ID
-        ))
-public abstract class Exercise {
+                childColumns = ExerciseTable.Cols.PARENT_ROUTINE_DAY_ID)},
+        indices = { @Index(value = ExerciseTable.Cols.PARENT_ROUTINE_DAY_ID)}
+        )
+public class Exercise {
 
     public static final String REPPED = "repped";
     public static final String TIMED = "timed";
@@ -51,6 +53,7 @@ public abstract class Exercise {
         this(UUID.randomUUID(), name, type, number);
     }*/
 
+    @Ignore
     public Exercise() {
     }
 
@@ -65,6 +68,7 @@ public abstract class Exercise {
         initializeSets();
     }
 
+    @Ignore
     public Exercise (int routineDayId, String name, int number, String type) {
         //mNumberSets = 3;
         this.routineDayId = routineDayId;

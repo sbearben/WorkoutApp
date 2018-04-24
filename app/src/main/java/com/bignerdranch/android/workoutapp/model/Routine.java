@@ -40,6 +40,7 @@ public class Routine {
         this.dateCreated = new Date();
     }*/
 
+    @Ignore
     public Routine() {
     }
 
@@ -49,6 +50,7 @@ public class Routine {
         this.dateCreated = dateCreated;
     }
 
+    @Ignore
     public Routine (String name) {
         this.name = name;
         this.dateCreated = new Date();

@@ -8,4 +8,13 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <!-- For stylizing the Spinner -->
+    <style name="spinnerItemStyle" parent="android:Widget.TextView.SpinnerItem">
+        <item name="android:textColor">@color/default_material_dark</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:padding">5dp</item>
+    </style>
+    <style name="spinnerDropDownItemStyle">
+    </style>
+
 </resources>
