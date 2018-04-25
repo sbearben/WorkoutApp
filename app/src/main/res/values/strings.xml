@@ -11,4 +11,8 @@
     <string name="menu_home">Home</string>
     <string name="menu_routines">Routines</string>
     <string name="menu_history">History</string>
+
+    <string name="empty_routines_text">You have not created any routines</string>
+    <string name="add_routine_button">Create first routine</string>
+
 </resources>
