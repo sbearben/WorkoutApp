@@ -13,7 +13,9 @@ import android.arch.persistence.room.TypeConverters;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
+import android.util.Log;
 
+import com.bignerdranch.android.workoutapp.database.DataGenerator;
 import com.bignerdranch.android.workoutapp.database.converter.BooleanConverter;
 import com.bignerdranch.android.workoutapp.database.converter.DateConverter;
 import com.bignerdranch.android.workoutapp.database.dao.ExerciseDao;
@@ -34,6 +36,8 @@ import java.util.List;
 @Database(version = 1, entities = {Routine.class, RoutineDay.class, Exercise.class, ReppedSet.class, TimedSet.class})
 @TypeConverters({DateConverter.class, BooleanConverter.class})
 public abstract class AppDatabase extends RoomDatabase {
+
+    private static final String TAG = "AppDatabase";
 
     private static AppDatabase sInstance;
 
@@ -69,24 +73,31 @@ public abstract class AppDatabase extends RoomDatabase {
      */
     private static AppDatabase buildDatabase (final Context appContext, final AppExecutors executors) {
         return Room.databaseBuilder(appContext, AppDatabase.class, DATABASE_NAME)
+                .allowMainThreadQueries()
                 .addCallback(new Callback() {
                     @Override
                     public void onCreate(@NonNull SupportSQLiteDatabase db) {
                         super.onCreate(db);
+                        Log.i(TAG, "DATABSE CREATED");
                         executors.diskIO().execute(() -> {
                             // Add a delay to simulate a long-running operation
                             //addDelay();
+
                             // Generate the data for pre-population
                             AppDatabase database = AppDatabase.getInstance(appContext, executors);
-                            //List<ProductEntity> products = DataGenerator.generateProducts();
-                            //List<CommentEntity> comments = DataGenerator.generateCommentsForProducts(products);
 
-                            //insertData(database, products, comments);
+                            List<Routine> routines = DataGenerator.generateRoutines();
+                            List<RoutineDay> routineDays = DataGenerator.generateRoutineDays(routines);
+                            List<Exercise> exercises = DataGenerator.generateExercises(routineDays, routines);
+                            List<ReppedSet> reppedSets = DataGenerator.generateReppedSets(exercises);
+
+                            insertData(database, routines, routineDays, exercises, reppedSets);
                             // notify that the database was created and it's ready to be used
                             database.setDatabaseCreated();
                         });
                     }
-                }).build();
+                })
+                .build();
     }
 
     /**
@@ -102,12 +113,15 @@ public abstract class AppDatabase extends RoomDatabase {
         mIsDatabaseCreated.postValue(true);
     }
 
-    /* private static void insertData(final AppDatabase database, final List<ProductEntity> products, final List<CommentEntity> comments) {
+    private static void insertData(final AppDatabase database, final List<Routine> routines, final List<RoutineDay> routineDays,
+                                   final List<Exercise> exercises, final List<ReppedSet> reppedSets) {
         database.runInTransaction(() -> {
-            database.productDao().insertAll(products);
-            database.commentDao().insertAll(comments);
+            database.routineDao().insertAllRoutines(routines);
+            database.routineDayDao().insertAllRoutineDays(routineDays);
+            database.exerciseDao().insertAllExercises(exercises);
+            database.reppedSetDao().insertAllReppedSets(reppedSets);
         });
-    } */
+    }
 
     private static void addDelay() {
         try {

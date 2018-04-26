@@ -40,7 +40,7 @@ public class RoutineDay {
     private boolean completed; // indicates whether the current workout day has been submitted as completed/finished
 
     @Ignore
-    private List<Exercise> exercises;
+    private List<Exercise> exercises = null;
 
 
     /*public RoutineDay(int dayNumber) {
@@ -118,6 +118,10 @@ public class RoutineDay {
 
     public void addExercise (Exercise e) {
         this.exercises.add(e);
+    }
+
+    public void addExercises (List<Exercise> exercises) {
+        this.exercises.addAll(exercises);
     }
 
     public void removeExercise (Exercise e) {

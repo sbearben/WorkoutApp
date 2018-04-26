@@ -46,7 +46,7 @@ public class Exercise {
     private String type;
 
     @Ignore
-    private List<Set> sets;
+    private List<Set> sets = null;
 
 
     /*public Exercise (String name, String type, int number) {
@@ -156,4 +156,12 @@ public class Exercise {
         mSets.remove(s.getSetNumber());
         mNumberSets--;
     } */
+
+    public void addSet (Set set) {
+        this.sets.add(set);
+    }
+
+    public void addSets (List<Set> sets) {
+        this.sets.addAll(sets);
+    }
 }

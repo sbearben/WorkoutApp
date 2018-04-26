@@ -27,7 +27,7 @@ public class Routine {
     private Date dateCreated; // date the routine was created
 
     @Ignore
-    private List<RoutineDay> routineDays;
+    private List<RoutineDay> routineDays = null;
 
 
     /*public Routine (String name) {
@@ -83,6 +83,10 @@ public class Routine {
 
     public void addRoutineDay (RoutineDay routineDay) {
         this.routineDays.add(routineDay);
+    }
+
+    public void addRoutineDays (List<RoutineDay> routineDays) {
+        this.routineDays.addAll(routineDays);
     }
 
     public void removeRoutineDay (RoutineDay routineDay) {

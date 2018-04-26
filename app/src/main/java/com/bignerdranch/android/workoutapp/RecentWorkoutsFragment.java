@@ -20,11 +20,15 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.bignerdranch.android.workoutapp.database.dao.RoutineDao;
 import com.bignerdranch.android.workoutapp.global.BasicApp;
 import com.bignerdranch.android.workoutapp.global.DataRepository;
 import com.bignerdranch.android.workoutapp.model.Exercise;
+import com.bignerdranch.android.workoutapp.model.ReppedSet;
 import com.bignerdranch.android.workoutapp.model.Routine;
 import com.bignerdranch.android.workoutapp.model.RoutineDay;
+import com.bignerdranch.android.workoutapp.model.Set;
+import com.bignerdranch.android.workoutapp.model.TimedSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,9 +41,16 @@ public class RecentWorkoutsFragment extends Fragment {
 
     private DataRepository mDataRepository;
     private Application mApplication;
+    private AppDatabase mAppDatabase;
 
-    private List<Routine> mRoutines;
+    // All of the variables for the data displayed on this screen
     private int mActiveRoutineId;
+    private Routine mActiveRoutine;
+    private List<Routine> mRoutines;
+
+    private List<RoutineDay> mRecentWorkoutDays;
+    private List<Exercise> mExerciseList;
+
 
     private AppCompatSpinner mToolbarSpinner;
     private View mEmptyRoutinesView;
@@ -60,14 +71,11 @@ public class RecentWorkoutsFragment extends Fragment {
     /* In order to get valid access to the hosting activity through getActivity() we need to call it here).
        Also, to get our support action bar we need to call getSupportActionBar() here and NOT in Fragment.onAttach() since if
        we call getSupportActionBar() in Fragment.onAttach() our app will crash with a NullPointerException when the activity is rotated
+       NOTE: onActivityCreated is called AFTER onCreateView (see fragment lifecycle: https://developer.android.com/guide/components/fragments.html
        - see: https://stackoverflow.com/a/24152394/7648952 */
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-        // Get our DataRepository so that we can easily execute our Db queries
-        mApplication = getActivity().getApplication();
-        mDataRepository = ((BasicApp) mApplication).getRepository();
 
         // Setup our custom toolbar and Spinner
         init_toolbar(getActivity());
@@ -76,11 +84,19 @@ public class RecentWorkoutsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Get our DataRepository so that we can easily execute our Db queries
+        mApplication = getActivity().getApplication();
+        mDataRepository = ((BasicApp) mApplication).getRepository();
+
+        // Query for our data that is displayed on this screen, and create a full Routine object if the required data exists
+        loadRequiredData();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_recent_workouts, container, false);
+
 
         // Get the Empty Routines view
         mEmptyRoutinesView = (View) v.findViewById(R.id.empty_routines_view);
@@ -89,13 +105,9 @@ public class RecentWorkoutsFragment extends Fragment {
         }
 
 
-        List<RoutineDay> recentWorkoutDays = new ArrayList<>();
-        Log.i (TAG, "" + mActiveRoutineId);
-        recentWorkoutDays = mDataRepository.loadMostRecentDaysInRoutine(mActiveRoutineId, MAX_RECENT_WORKOUT_DAYS).getValue();
-
-        if (recentWorkoutDays.size() > 0) {
+        if (mActiveRoutine != null && mActiveRoutine.getRoutineDays() != null) {
             // Nested for loops to initialize all of our text views for our most recent workout days
-            for (int i = 0; i < recentWorkoutDays.size(); i++) {
+            for (int i = 0; i < mActiveRoutine.getRoutineDays().size(); i++) {
                 int resId = mRecentWorkoutViews[i].resIdGenerator((i + 1) + "_date");
                 mRecentWorkoutViews[i].mDateTextView = (TextView) v.findViewById(resId);
 
@@ -126,9 +138,6 @@ public class RecentWorkoutsFragment extends Fragment {
 
     // Method to setup the spinner contained in the toolbar
     private void init_spinner (Context context, View actionBarView) {
-
-        mRoutines  = mDataRepository.loadRoutines().getValue();
-        mActiveRoutineId = SharedPreferences.getActiveRoutineId(getActivity());
 
         String activeRoutineName = "";
         List<String> routineNames = new ArrayList<>();
@@ -181,6 +190,74 @@ public class RecentWorkoutsFragment extends Fragment {
             // Display a message indicating this shit is empty and need to add routine
             mToolbarSpinner.setVisibility (View.GONE);
         }
+    }
+
+    // Method to consolidate our Db queries that we need to execute when the screen is loaded
+    private void loadRequiredData() {
+
+        /*new Thread(new Runnable() {
+            @Override
+            public void run() {
+                mRoutines  = mDataRepository.loadRoutines();
+            }
+        }) .start(); */
+
+        mRoutines  = mDataRepository.loadRoutines().getValue();
+
+        //LiveData<List<Routine>> x = mDataRepository.loadRoutines();
+        //LiveData<List<Routine>> y = mAppDatabase.routineDao().getAllRoutines();
+
+        Log.i(TAG, "DOA CALL");
+        mActiveRoutineId = SharedPreferences.getActiveRoutineId(getActivity());
+
+        mActiveRoutine = createRoutineObject(mActiveRoutineId);
+
+    }
+
+    // Creates a full Routine object if all the required data exists
+    private Routine createRoutineObject (int activeRoutineId) {
+        Routine activeRoutine = null;
+
+        if (activeRoutineId != SharedPreferences.NO_ACTIVE_ROUTINE) {
+            activeRoutine = mDataRepository.loadRoutine(activeRoutineId).getValue();
+
+            // Get RoutineDays
+            List<RoutineDay> routineDays = mDataRepository.loadMostRecentDaysInRoutine(activeRoutineId, MAX_RECENT_WORKOUT_DAYS).getValue();
+            if (routineDays == null) {
+                return null;
+            }
+            activeRoutine.addRoutineDays(routineDays);
+
+            // Get the Exercises for each RoutineDay
+            for (RoutineDay routineDay : activeRoutine.getRoutineDays()) {
+                // Get first three exercises for each day
+                List<Exercise> dayExercises = mDataRepository.loadFirstNExercisesInRoutineDay(routineDay.getId(), RecentWorkoutViews.EXERCISES_PER_CARDVIEW).getValue();
+                if (dayExercises == null) {
+                    return null;
+                }
+                routineDay.addExercises(dayExercises);
+
+                // Get sets in Exercises
+                for (Exercise exercise : routineDay.getExercises()) {
+                    List<Set> exerciseSets;
+                    if (exercise.getType() == Exercise.REPPED) {
+                        // Solution to cast list of subtype List<ReppedSet> to list of supertype List<Set> found here:
+                        // - https://stackoverflow.com/a/933600/7648952
+                        exerciseSets = (List<Set>)(List<?>) mDataRepository.loadAllReppedExerciseSets(exercise.getId()).getValue();
+                    }
+                    else {
+                        exerciseSets = (List<Set>)(List<?>) mDataRepository.loadAllTimedExerciseSets(exercise.getId()).getValue();
+                    }
+
+                    if (exerciseSets == null) {
+                        return null;
+                    }
+                    exercise.addSets(exerciseSets);
+                }
+            }
+        }
+
+        return activeRoutine;
     }
 
 
