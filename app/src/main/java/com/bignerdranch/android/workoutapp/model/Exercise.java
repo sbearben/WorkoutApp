@@ -40,7 +40,9 @@ public class Exercise {
 
     @ColumnInfo(name = ExerciseTable.Cols.EXERCISE_NUM)
     private int number; // is the number of the exercise in the routine - might not be needed
-    //private int mNumberSets;
+
+    @ColumnInfo(name = ExerciseTable.Cols.EXERCISE_NUM_SETS)
+    private int mTargetNumberSets;
 
     @ColumnInfo(name = ExerciseTable.Cols.EXERCISE_TYPE)
     private String type;
@@ -77,7 +79,7 @@ public class Exercise {
         this.number = number;
         this.type = type;
 
-        initializeSets();
+        //initializeSets();
     }
 
     private void initializeSets() {
@@ -105,7 +107,6 @@ public class Exercise {
         this.routineDayId = routineDayId;
     }
 
-
     public String getName() {
         return this.name;
     }
@@ -122,9 +123,13 @@ public class Exercise {
         this.number = number;
     }
 
-    /* public int getNumberSets() {
-        return mNumberSets;
-    } */
+    public int getTargetNumberSets() {
+        return mTargetNumberSets;
+    }
+
+    public void setTargetNumberSets(int targetNumberSets) {
+        this.mTargetNumberSets = targetNumberSets;
+    }
 
     public String getType() {
         return this.type;

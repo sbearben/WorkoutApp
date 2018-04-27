@@ -117,6 +117,7 @@ public class DataGenerator {
                 exercise.setRoutineDayId(routineDay.getId());
                 exercise.setName(routine_days[routineIndex][routineDay.getDayNumber()-1][i]);
                 exercise.setNumber(i+1);
+                exercise.setTargetNumberSets(number_sets_options[rnd.nextInt(number_sets_options.length)]);
                 exercise.setType(Exercise.REPPED);
 
                 exercises.add(exercise);
@@ -131,18 +132,22 @@ public class DataGenerator {
         Random rnd = new Random();
 
         for (Exercise exercise : exercises) {
-            int numSetsInExercise = rnd.nextInt(number_sets_options.length);
+            //int numCompletedSets = rnd.nextInt(exercise.getTargetNumberSets()+1);
 
-            int upper = number_sets_options[numSetsInExercise];
-            for (int i=0; i < upper; i++) {
+            for (int i=0; i < exercise.getTargetNumberSets(); i++) {
                 ReppedSet reppedSet = new ReppedSet();
 
-                reppedSet.setId(3000 + upper*exercises.indexOf(exercise) + i);
+                reppedSet.setId(3000 + exercise.getTargetNumberSets()*exercises.indexOf(exercise) + i);
                 reppedSet.setExerciseId(exercise.getId());
                 reppedSet.setSetNumber(i+1);
                 reppedSet.setTargetWeight(target_weight_options[rnd.nextInt(target_weight_options.length)]);
                 reppedSet.setTargetMeasurement(number_reps_options[rnd.nextInt(number_reps_options.length)]);
-                reppedSet.setActualMeasurement(reppedSet.getTargetMeasurement() - rnd.nextInt(4));
+                //reppedSet.setActualMeasurement(reppedSet.getTargetMeasurement() - rnd.nextInt(4));
+
+                // Changed the way we randomly generate the ActualMeasurement, since a value of -1 (which is set in the constant ReppedSet.ACTUAL_REPS_NULL)
+                // indicates that the set was skipped - therefore we want to include it as a possible generate random value for actualMeasurement
+                // - so this code will set reppedSet.actualMeasurement to a value between -1 and reppedSet.targetMeasurement
+                reppedSet.setActualMeasurement(rnd.nextInt(reppedSet.getTargetMeasurement()+2)-1);
 
 
                 reppedSets.add(reppedSet);

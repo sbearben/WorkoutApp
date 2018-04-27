@@ -19,8 +19,11 @@ import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.ExerciseTabl
         )
 public class ReppedSet extends Set<Integer> {
 
+    public static final int ACTUAL_REPS_NULL = -1;
+
     @Ignore
     public ReppedSet() {
+        setActualMeasurement (ACTUAL_REPS_NULL);
     }
 
     public ReppedSet (int id, int exerciseId, int setNumber, int targetWeight, Integer targetMeasurement, Integer actualMeasurement) {

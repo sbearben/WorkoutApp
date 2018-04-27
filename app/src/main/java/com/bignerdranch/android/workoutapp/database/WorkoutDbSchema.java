@@ -38,6 +38,7 @@ public class WorkoutDbSchema {
             public static final String PARENT_ROUTINE_DAY_ID = RoutineDayTable.Cols.ROUTINE_DAY_ID;
             public static final String EXERCISE_NAME = "exercise_name";
             public static final String EXERCISE_NUM = "exercise_number";
+            public static final String EXERCISE_NUM_SETS = "exercise_target_num_sets";
             public static final String EXERCISE_TYPE = "exercise_type";
         }
     }

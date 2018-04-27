@@ -116,25 +116,32 @@ public class RecentWorkoutsFragment extends Fragment {
                 RecentWorkoutViews recentWorkoutView = new RecentWorkoutViews();
                 RoutineDay routineDay = mActiveRoutine.getRoutineDays().get(i);
 
-                // Get a reference to the date text view, create the date string and set the TextView
+                // Get a reference to the date text view, create the date string, and set the TextView
                 int resId = recentWorkoutView.resIdGenerator((i + 1) + "_date");
                 recentWorkoutView.mDateTextView = (TextView) v.findViewById(resId);
                 String dateString = recentWorkoutView.createDateString(routineDay.getDate(), routineDay.isCompleted());
                 recentWorkoutView.mDateTextView.setText(dateString);
 
                 for (int j = 0; j < routineDay.getExercises().size(); j++) {
-                    recentWorkoutView.addEmptyExerciseView();
-                    RecentWorkoutViews.ExerciseViews exerciseViews = recentWorkoutView.mExerciseViews.get(j);
+                    // Get current exercise
                     Exercise exercise = routineDay.getExercises().get(j);
 
+                    // Add a new ExerciseViews within the recentWorkoutView and then retrieve it
+                    recentWorkoutView.addEmptyExerciseView();
+                    RecentWorkoutViews.ExerciseViews exerciseViews = recentWorkoutView.mExerciseViews.get(j);
+
+                    // Get a reference to the exercise name text view and set it to the current exercise's name
                     resId = recentWorkoutView.resIdGenerator((i + 1) + "_exercise" + (j + 1));
                     exerciseViews.mNameTextView = (TextView) v.findViewById(resId);
                     exerciseViews.mNameTextView.setText(exercise.getName());
 
+                    // Get a reference to the exercise details text view, create the details string, and set the TextView
                     resId = recentWorkoutView.resIdGenerator((i + 1) + "_exercise" + (j + 1) + "_details");
                     exerciseViews.mDetailsTextView = (TextView) v.findViewById(resId);
+                    String detailsString = recentWorkoutView.createExerciseDetailsString(exercise);
+                    exerciseViews.mDetailsTextView.setText(detailsString);
                 }
-                // Add the element to the list
+                // Add the recentWorkoutView element to the list of RecentWorkoutViews
                 mRecentWorkoutViews.add(recentWorkoutView);
             }
         }
@@ -341,6 +348,74 @@ public class RecentWorkoutsFragment extends Fragment {
             int month = calendar.get(Calendar.MONTH);
 
             return dayNames[dayOfWeek-1] + "\n" + day + " " + monthNames[month];
+        }
+
+        // TODO: This function hardcodes the set weights in pounds - eventually need to add flexibility for switch between pounds and kg
+        private String createExerciseDetailsString (Exercise exercise) {
+            String detailsString = "";
+            int targetNumSets = exercise.getTargetNumberSets();
+
+            if (exercise.getType().equals(Exercise.REPPED)) {
+                int maxTargetWeight = 0;
+                int previousSetTargetWeight = 0;
+                int maxTargetReps = 0;
+                int previousSetTargetReps = 0;
+
+                boolean allSetsSameTargetWeight = true; // flag to determine if all sets in exercise are at the same target weight
+                boolean allSetsSameTargetReps = true; // flag to determine if all sets in exercise are at the same target reps
+                boolean allSetsSuccessfullyCompleted = true; // flag to determine if all sets were successful (aka we hit our target number of reps)
+                int skippedSetCount = 0; // integer to keep track of how many sets were skipped - if this count equals the number of sets, then we know the exercise was completely skipped
+                boolean exerciseSkipped = true; // flag to determine of the exercise was completely skipped
+
+                // Loop through each reppedSet in the exercise
+                for (Set reppedSet : exercise.getSets()) {
+                    int setTargetWeight = ((ReppedSet) reppedSet).getTargetMeasurement().intValue();
+                    int setTargetReps = ((ReppedSet) reppedSet).getTargetMeasurement().intValue();
+                    int setActualReps = ((ReppedSet) reppedSet).getActualMeasurement().intValue();
+
+                    // Logic to get the exercise's highest weight set
+                    if (setTargetWeight > maxTargetWeight) {
+                        maxTargetWeight = setTargetWeight;
+                    }
+                    // If at any point, the current set targetWeight is not equal to the previous set targetWeight, then we know all sets are not the same target weight
+                    if (setTargetWeight != previousSetTargetWeight) {
+                        allSetsSameTargetWeight = false;
+                    }
+                    // Logic to get the exercise's highest target reps set
+                    if (setTargetReps > maxTargetReps) {
+                        maxTargetReps = setTargetReps;
+                    }
+                    if (setTargetReps != previousSetTargetReps) {
+                        allSetsSameTargetReps = false;
+                    }
+                    // If at any point, the current set targetReps is not equal to the set actualReps, then we know that all of the exercise's sets were not completed successfully
+                    if (setActualReps != setTargetReps) {
+                        allSetsSuccessfullyCompleted = false;
+                    }
+                    // If the setActualReps equals ReppedSet.ACTUAL_REPS_NULL the set has been skipped, so we increment our skippedSetCount
+                    if (setActualReps == ReppedSet.ACTUAL_REPS_NULL) {
+                        skippedSetCount++;
+                        detailsString += "‒/"; // The dash here indicates the set was skipped
+                        continue; // We want to go back to the top of the for loop since the code below that adds to detailsString will double count the set if we don't
+
+                    }
+                    detailsString += setActualReps + "/";
+                }
+
+                detailsString += "  " + maxTargetWeight + "lb"; // TODO: change hardcode of lb (pounds) here
+
+                if ((allSetsSameTargetWeight && allSetsSameTargetReps && allSetsSuccessfullyCompleted) || (targetNumSets == 1 && skippedSetCount == 0)) {
+                    detailsString = targetNumSets + "x" + maxTargetReps + " " + maxTargetWeight + "lb";  // TODO: change hardcode of lb (pounds) here
+                }
+                else if (targetNumSets == skippedSetCount) {
+                    detailsString = "Skipped";
+                }
+            }
+            else if (exercise.getType().equals(Exercise.TIMED)) {
+                // Some other logic here for when we implement timed sets - a lot of it will be similar to the above, so we'll have to make the above code more abstract eventually
+            }
+
+            return detailsString;
         }
 
         // Need this method because outside of this class we can't create an ExerciseViews object since it isn't static, and we can't make it static since it's an inner class
