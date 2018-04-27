@@ -14,10 +14,10 @@ import java.util.List;
 public interface RoutineDao {
 
     @Query("SELECT * FROM routines")
-    LiveData<List<Routine>> getAllRoutines();
+    List<Routine> getAllRoutines();
 
     @Query("SELECT * FROM routines WHERE routine_id = :id")
-    LiveData<Routine> getRoutine(int id);
+    Routine getRoutine(int id);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAllRoutines(List<Routine> routines);

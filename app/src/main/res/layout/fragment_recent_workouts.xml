@@ -45,7 +45,7 @@
                 <TextView
                     android:id="@+id/recent_workout1_date"
                     style="@style/workoutDateTextViewStyle"
-                    android:text="Ongoing"/>
+                    tools:text="Ongoing"/>
 
                 <LinearLayout
                     style="@style/exerciseNameLinearLayoutStyle">
@@ -53,17 +53,17 @@
                     <TextView
                         android:id="@+id/recent_workout1_exercise1"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="Exercise 1"/>
+                        tools:text="Exercise 1"/>
 
                     <TextView
                         android:id="@+id/recent_workout1_exercise2"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="Exercise 2"/>
+                        tools:text="Exercise 2"/>
 
                     <TextView
                         android:id="@+id/recent_workout1_exercise3"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="Exercise 3"/>
+                        tools:text="Exercise 3"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -72,17 +72,17 @@
                     <TextView
                         android:id="@+id/recent_workout1_exercise1_details"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="Skipped"/>
+                        tools:text="Skipped"/>
 
                     <TextView
                         android:id="@+id/recent_workout1_exercise2_details"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="5x5 30lbs"/>
+                        tools:text="5x5 30lbs"/>
 
                     <TextView
                         android:id="@+id/recent_workout1_exercise3_details"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="5x5 265lbs"/>
+                        tools:text="5x5 265lbs"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -103,7 +103,7 @@
                 <TextView
                     android:id="@+id/recent_workout2_date"
                     style="@style/workoutDateTextViewStyle"
-                    android:text="Ongoing"/>
+                    tools:text="Ongoing"/>
 
                 <LinearLayout
                     style="@style/exerciseNameLinearLayoutStyle">
@@ -111,17 +111,17 @@
                     <TextView
                         android:id="@+id/recent_workout2_exercise1"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="Exercise 1"/>
+                        tools:text="Exercise 1"/>
 
                     <TextView
                         android:id="@+id/recent_workout2_exercise2"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="Exercise 2"/>
+                        tools:text="Exercise 2"/>
 
                     <TextView
                         android:id="@+id/recent_workout2_exercise3"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="Exercise 3"/>
+                        tools:text="Exercise 3"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -130,17 +130,17 @@
                     <TextView
                         android:id="@+id/recent_workout2_exercise1_details"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="Skipped"/>
+                        tools:text="Skipped"/>
 
                     <TextView
                         android:id="@+id/recent_workout2_exercise2_details"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="5x5 30lbs"/>
+                        tools:text="5x5 30lbs"/>
 
                     <TextView
                         android:id="@+id/recent_workout2_exercise3_details"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="5x5 265lbs"/>
+                        tools:text="5x5 265lbs"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -161,7 +161,7 @@
                 <TextView
                     android:id="@+id/recent_workout3_date"
                     style="@style/workoutDateTextViewStyle"
-                    android:text="Ongoing"/>
+                    tools:text="Ongoing"/>
 
                 <LinearLayout
                     style="@style/exerciseNameLinearLayoutStyle">
@@ -169,17 +169,17 @@
                     <TextView
                         android:id="@+id/recent_workout3_exercise1"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="Exercise 1"/>
+                        tools:text="Exercise 1"/>
 
                     <TextView
                         android:id="@+id/recent_workout3_exercise2"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="Exercise 2"/>
+                        tools:text="Exercise 2"/>
 
                     <TextView
                         android:id="@+id/recent_workout3_exercise3"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="Exercise 3"/>
+                        tools:text="Exercise 3"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -188,17 +188,17 @@
                     <TextView
                         android:id="@+id/recent_workout3_exercise1_details"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="Skipped"/>
+                        tools:text="Skipped"/>
 
                     <TextView
                         android:id="@+id/recent_workout3_exercise2_details"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="5x5 30lbs"/>
+                        tools:text="5x5 30lbs"/>
 
                     <TextView
                         android:id="@+id/recent_workout3_exercise3_details"
                         style="@style/exerciseDetailsTextViewStyle"
-                        android:text="5x5 265lbs"/>
+                        tools:text="5x5 265lbs"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -219,14 +219,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/empty_routines_text"
-            android:textSize="20sp"/>
+            tools:text="@string/empty_routines_text"
+            tools:textSize="20sp"/>
 
         <Button
             android:id="@+id/empty_crimes_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/add_routine_button"/>
+            tools:text="@string/add_routine_button"/>
 
     </LinearLayout>
 

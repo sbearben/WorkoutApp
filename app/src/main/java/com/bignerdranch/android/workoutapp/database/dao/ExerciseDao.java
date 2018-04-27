@@ -14,20 +14,20 @@ import java.util.List;
 public interface ExerciseDao {
 
     @Query("SELECT * FROM exercises")
-    LiveData<List<Exercise>> getAllExercises();
+    List<Exercise> getAllExercises();
 
     @Query("SELECT * FROM exercises WHERE exercise_id = :id")
-    LiveData<Exercise> getExercise(int id);
+    Exercise getExercise(int id);
 
     @Query("SELECT * FROM exercises WHERE routine_day_id = :routineDayId")
-    LiveData<List<Exercise>> getAllExercisesInRoutineDay (int routineDayId);
+    List<Exercise> getAllExercisesInRoutineDay (int routineDayId);
 
     @Query("SELECT * " +
             "FROM exercises " +
             "WHERE routine_day_id = :routineDayId " +
             "ORDER BY exercise_number " +
             "LIMIT :numberExercises")
-    LiveData<List<Exercise>> getFirstNExercisesInRoutineDay (int routineDayId, int numberExercises);
+    List<Exercise> getFirstNExercisesInRoutineDay (int routineDayId, int numberExercises);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAllExercises(List<Exercise> exercises);

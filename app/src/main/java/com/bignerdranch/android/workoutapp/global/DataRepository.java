@@ -41,11 +41,11 @@ public class DataRepository {
     /**
      * Routine queries
      */
-    public LiveData<List<Routine>> loadRoutines() {
+    public List<Routine> loadRoutines() {
         return mDatabase.routineDao().getAllRoutines();
     }
 
-    public LiveData<Routine> loadRoutine (final int routineId) {
+    public Routine loadRoutine (final int routineId) {
         return mDatabase.routineDao().getRoutine(routineId);
     }
 
@@ -60,23 +60,23 @@ public class DataRepository {
     /**
      * RoutineDay queries
      */
-    public LiveData<List<RoutineDay>> loadRoutineDays() {
+    public List<RoutineDay> loadRoutineDays() {
         return mDatabase.routineDayDao().getAllRoutineDays();
     }
 
-    public LiveData<RoutineDay> loadRoutineDay (final int routineDayId) {
+    public RoutineDay loadRoutineDay (final int routineDayId) {
         return mDatabase.routineDayDao().getRoutineDay(routineDayId);
     }
 
-    public LiveData<List<RoutineDay>> loadAllRoutineDaysInRoutine (final int routineId) {
+    public List<RoutineDay> loadAllRoutineDaysInRoutine (final int routineId) {
         return mDatabase.routineDayDao().getAllRoutineDaysInRoutine(routineId);
     }
 
-    public LiveData<Integer> loadMostRecentRoutineId() {
+    public int loadMostRecentRoutineId() {
         return mDatabase.routineDayDao().getMostRecentRoutineId();
     }
 
-    public LiveData<List<RoutineDay>> loadMostRecentDaysInRoutine (final int routineId, final int numberDays) {
+    public List<RoutineDay> loadMostRecentDaysInRoutine (final int routineId, final int numberDays) {
         return mDatabase.routineDayDao().getMostRecentDaysInRoutine(routineId, numberDays);
     }
 
@@ -91,19 +91,19 @@ public class DataRepository {
     /**
      * Exercise queries
      */
-    public LiveData<List<Exercise>> loadExercises() {
+    public List<Exercise> loadExercises() {
         return mDatabase.exerciseDao().getAllExercises();
     }
 
-    public LiveData<Exercise> loadExercise (final int exerciseId) {
+    public Exercise loadExercise (final int exerciseId) {
         return mDatabase.exerciseDao().getExercise(exerciseId);
     }
 
-    public LiveData<List<Exercise>> loadAllExercisesInRoutineDay (final int routineDayId) {
+    public List<Exercise> loadAllExercisesInRoutineDay (final int routineDayId) {
         return mDatabase.exerciseDao().getAllExercisesInRoutineDay(routineDayId);
     }
 
-    public LiveData<List<Exercise>> loadFirstNExercisesInRoutineDay (final int routineDayId, final int numberExercises) {
+    public List<Exercise> loadFirstNExercisesInRoutineDay (final int routineDayId, final int numberExercises) {
         return mDatabase.exerciseDao().getFirstNExercisesInRoutineDay(routineDayId, numberExercises);
     }
 
@@ -118,15 +118,15 @@ public class DataRepository {
     /**
      * ReppedSet queries
      */
-    public LiveData<List<ReppedSet>> loadReppedSets() {
+    public List<ReppedSet> loadReppedSets() {
         return mDatabase.reppedSetDao().getAllReppedSets();
     }
 
-    public LiveData<ReppedSet> loadReppedSet (final int reppedSetId) {
+    public ReppedSet loadReppedSet (final int reppedSetId) {
         return mDatabase.reppedSetDao().getReppedSet(reppedSetId);
     }
 
-    public LiveData<List<ReppedSet>> loadAllReppedExerciseSets(final int exerciseId) {
+    public List<ReppedSet> loadAllReppedExerciseSets(final int exerciseId) {
         return mDatabase.reppedSetDao().getAllReppedExerciseSets(exerciseId);
     }
 
@@ -141,15 +141,15 @@ public class DataRepository {
     /**
      * TimedSet queries
      */
-    public LiveData<List<TimedSet>> loadTimedSets() {
+    public List<TimedSet> loadTimedSets() {
         return mDatabase.timedSetDao().getAllTimedSets();
     }
 
-    public LiveData<TimedSet> loadTimedSet (final int timedSetId) {
+    public TimedSet loadTimedSet (final int timedSetId) {
         return mDatabase.timedSetDao().getTimedSet(timedSetId);
     }
 
-    public LiveData<List<TimedSet>> loadAllTimedExerciseSets(final int exerciseId) {
+    public List<TimedSet> loadAllTimedExerciseSets(final int exerciseId) {
         return mDatabase.timedSetDao().getAllTimedExerciseSets(exerciseId);
     }
 

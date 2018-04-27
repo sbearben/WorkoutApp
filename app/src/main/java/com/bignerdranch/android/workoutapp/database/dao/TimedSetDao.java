@@ -15,13 +15,13 @@ import java.util.List;
 public interface TimedSetDao {
 
     @Query("SELECT * FROM timed_sets")
-    LiveData<List<TimedSet>> getAllTimedSets();
+    List<TimedSet> getAllTimedSets();
 
     @Query("SELECT * FROM timed_sets WHERE set_id = :setId")
-    LiveData<TimedSet> getTimedSet(int setId);
+    TimedSet getTimedSet(int setId);
 
     @Query("SELECT * FROM repped_sets WHERE exercise_id = :exerciseId")
-    LiveData<List<TimedSet>> getAllTimedExerciseSets(int exerciseId);
+    List<TimedSet> getAllTimedExerciseSets(int exerciseId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAllTimedSets(List<TimedSet> timedSets);

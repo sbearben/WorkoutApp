@@ -10,6 +10,7 @@ import android.arch.persistence.room.PrimaryKey;
 import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.RoutineDayTable;
 import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.RoutineTable;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -63,6 +64,7 @@ public class RoutineDay {
         this.dayNumber = dayNumber;
         this.date = date;
         this.completed = completed;
+        this.exercises = new ArrayList<>();
     }
 
     @Ignore

@@ -65,7 +65,8 @@ public class Exercise {
         this.number = number;
         this.type = type;
 
-        initializeSets();
+        this.sets = new ArrayList<>();
+        //initializeSets();
     }
 
     @Ignore

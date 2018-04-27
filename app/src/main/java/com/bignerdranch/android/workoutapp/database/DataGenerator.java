@@ -75,20 +75,20 @@ public class DataGenerator {
         Random rnd = new Random();
 
         for (Routine routine : routines) {
-            int numExercisesInDay = routine_days[routines.indexOf(routine)].length;
+            int numDaysInRoutine = routine_days[routines.indexOf(routine)].length;
             int currentDayNumber = 1;
 
             for (int i = 0; i < 20; i++) {
                 RoutineDay routineDay = new RoutineDay();
 
-                routineDay.setId(1000 + i*routines.indexOf(routine) + i);
+                routineDay.setId(1000 + 20*routines.indexOf(routine) + i);
                 routineDay.setRoutineId(routine.getId());
                 routineDay.setDayNumber(currentDayNumber);
                 routineDay.setDate(new GregorianCalendar(2018, routines.indexOf(routine)+1, i+1).getTime());
                 routineDay.setCompleted(true);
 
                 routineDays.add(routineDay);
-                currentDayNumber = (i%numExercisesInDay) + 1;
+                currentDayNumber = (i%numDaysInRoutine) + 1;
             }
         }
 
@@ -100,7 +100,6 @@ public class DataGenerator {
         Random rnd = new Random();
 
         for (RoutineDay routineDay : routineDays) {
-
             int routineId = routineDay.getRoutineId();
             int routineIndex = 0;
 
@@ -110,10 +109,11 @@ public class DataGenerator {
                 }
             }
 
-            for (int i = 0; i < routine_days[routineIndex][routineDay.getDayNumber()-1].length; i++) {
+            int upper = routine_days[routineIndex][routineDay.getDayNumber()-1].length;
+            for (int i = 0; i < upper; i++) {
                 Exercise exercise = new Exercise();
 
-                exercise.setId(2000 + i*routineDays.indexOf(routineDay) + i);
+                exercise.setId(2000 + upper*routineDays.indexOf(routineDay) + i);
                 exercise.setRoutineDayId(routineDay.getId());
                 exercise.setName(routine_days[routineIndex][routineDay.getDayNumber()-1][i]);
                 exercise.setNumber(i+1);
@@ -133,10 +133,11 @@ public class DataGenerator {
         for (Exercise exercise : exercises) {
             int numSetsInExercise = rnd.nextInt(number_sets_options.length);
 
-            for (int i=0; i < number_sets_options[numSetsInExercise]; i++) {
+            int upper = number_sets_options[numSetsInExercise];
+            for (int i=0; i < upper; i++) {
                 ReppedSet reppedSet = new ReppedSet();
 
-                reppedSet.setId(3000 + i*exercises.indexOf(exercise) + i);
+                reppedSet.setId(3000 + upper*exercises.indexOf(exercise) + i);
                 reppedSet.setExerciseId(exercise.getId());
                 reppedSet.setSetNumber(i+1);
                 reppedSet.setTargetWeight(target_weight_options[rnd.nextInt(target_weight_options.length)]);

@@ -13,27 +13,27 @@ import java.util.List;
 @Dao
 public interface RoutineDayDao {
     @Query("SELECT * FROM routine_days")
-    LiveData<List<RoutineDay>> getAllRoutineDays();
+    List<RoutineDay> getAllRoutineDays();
 
     @Query("SELECT * FROM routine_days WHERE routine_day_id = :id")
-    LiveData<RoutineDay> getRoutineDay (int id);
+    RoutineDay getRoutineDay (int id);
 
     @Query("SELECT * FROM routine_days WHERE routine_id = :routineId")
-    LiveData<List<RoutineDay>> getAllRoutineDaysInRoutine (int routineId);
+    List<RoutineDay> getAllRoutineDaysInRoutine (int routineId);
 
     @Query("SELECT routine_id " +
             "FROM routine_days " +
             "WHERE routine_day_completed = 1 " +
             "ORDER BY routine_day_date_performed DESC " +
             "LIMIT 1")
-    LiveData<Integer> getMostRecentRoutineId();
+    int getMostRecentRoutineId();
 
     @Query("SELECT * " +
             "FROM routine_days " +
             "WHERE routine_day_completed = 1 AND routine_id = :routineId " +
             "ORDER BY routine_day_date_performed DESC, routine_day_number " +
             "LIMIT :numberDays")
-    LiveData<List<RoutineDay>> getMostRecentDaysInRoutine(int routineId, int numberDays);
+    List<RoutineDay> getMostRecentDaysInRoutine(int routineId, int numberDays);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAllRoutineDays(List<RoutineDay> routineDays);

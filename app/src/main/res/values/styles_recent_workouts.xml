@@ -3,6 +3,17 @@
 <!-- Recent workouts stylesheet -->
 <resources>
 
+    <!-- For dealing with text that is larger than the size of the width of the TextView
+         found: https://stackoverflow.com/a/11262005/7648952 -->
+    <style name="autoscroll">
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">marquee</item>
+        <item name="android:marqueeRepeatLimit">marquee_forever</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:scrollHorizontally">true</item>
+    </style>
+
     <!-- For stylizing the CardView -->
     <style name="cardViewStyle">
         <item name="android:layout_width">match_parent</item>
@@ -10,24 +21,26 @@
         <item name="android:layout_margin">8dp</item>
         <item name="cardCornerRadius">4dp</item>
         <item name="cardElevation">0dp</item>
+        <item name="android:weightSum">12</item>
     </style>
 
     <!-- First TextView that holds the workout date -->
     <style name="workoutDateTextViewStyle">
-        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_weight">3</item>
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">17sp</item>
         <item name="android:textColor">@color/mediumDarkGray</item>
         <item name="android:textAlignment">center</item>
         <item name="android:layout_gravity">center</item>
+        <item name="android:ellipsize">marquee</item>
     </style>
 
     <!-- LinearLayout style for the section that holds exercise names -->
     <style name="exerciseNameLinearLayoutStyle">
-        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">3</item>
+        <item name="android:layout_weight">4</item>
         <item name="android:padding">5dp</item>
         <item name="android:orientation">vertical</item>
     </style>
@@ -38,12 +51,13 @@
     </style>
 
     <!-- The TextViews that hold the exercise names and metrics -->
-    <style name="exerciseDetailsTextViewStyle">
-        <item name="android:layout_width">wrap_content</item>
+    <style name="exerciseDetailsTextViewStyle" parent="autoscroll">
+        <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_margin">5dp</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/darkGray</item>
+        <item name="android:ellipsize">marquee</item>
     </style>
 
 

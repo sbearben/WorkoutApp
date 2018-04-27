@@ -5,5 +5,4 @@
     android:singleLine="true"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:ellipsize="marquee"
-    android:textAlignment="inherit"/>
+    android:ellipsize="marquee"/>

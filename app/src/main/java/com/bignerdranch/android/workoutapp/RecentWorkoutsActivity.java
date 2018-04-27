@@ -13,25 +13,4 @@ public class RecentWorkoutsActivity extends SingleFragmentActivity {
         return RecentWorkoutsFragment.newInstance();
     }
 
-    /**
-     * Android Application class. Used for accessing singletons.
-     */
-    public static class BasicApp extends Application {
-
-        private AppExecutors mAppExecutors;
-
-        @Override
-        public void onCreate() {
-            super.onCreate();
-            mAppExecutors = new AppExecutors();
-        }
-
-        public AppDatabase  getDatabase() {
-            return AppDatabase.getInstance(this, mAppExecutors);
-        }
-
-        public DataRepository getRepository() {
-            return DataRepository.getInstance(getDatabase());
-        }
-    }
 }

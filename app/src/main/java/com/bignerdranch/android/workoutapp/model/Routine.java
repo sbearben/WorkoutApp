@@ -7,6 +7,7 @@ import android.arch.persistence.room.PrimaryKey;
 
 import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.RoutineTable;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -48,6 +49,7 @@ public class Routine {
         this.id = id;
         this.name = name;
         this.dateCreated = dateCreated;
+        this.routineDays = new ArrayList<>();
     }
 
     @Ignore
