@@ -143,4 +143,22 @@ public class RoutineDay {
         return null;
     }
 
+    @Override
+    public String toString() {
+        String str = "";
+
+        str += "RoutineDay: " + getId() + "\n" +
+                "\t" + "Parent Routine Id: " + getRoutineId() + ", day#: " + getDayNumber() + ", date: " + getDate().toString() + "\n";
+        if (exercises != null) {
+            for (Exercise exercise : exercises) {
+                str += exercise.toString();
+            }
+        }
+
+        return str;
+
+        /*return "RoutineDay: " + getId() + "\n" +
+                "\t" + "Parent Routine Id: " + getRoutineId() + ", day#: " + getDayNumber() + ", date: " + getDate().toString() + "\n";*/
+    }
+
 }

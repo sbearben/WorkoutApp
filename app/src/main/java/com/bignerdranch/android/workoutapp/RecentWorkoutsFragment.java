@@ -3,6 +3,7 @@ package com.bignerdranch.android.workoutapp;
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
@@ -13,6 +14,7 @@ import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -34,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,15 +48,12 @@ public class RecentWorkoutsFragment extends Fragment {
 
     private DataRepository mDataRepository;
     private Application mApplication;
-    private AppDatabase mAppDatabase;
 
     // All of the variables for the data displayed on this screen
     private int mActiveRoutineId;
     private Routine mActiveRoutine;
     private List<Routine> mRoutines;
-    private List<RoutineDay> mRecentWorkoutDays;
-    private List<Exercise> mExerciseList;
-    private Map<Integer, String> mRoutineIdNameMap;
+    private Map<String, Integer> mRoutineIdNameMap;
 
     private AppCompatSpinner mToolbarSpinner;
     private View mEmptyRoutinesView;
@@ -71,6 +71,97 @@ public class RecentWorkoutsFragment extends Fragment {
         return new RecentWorkoutsFragment();
     }
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Get our DataRepository so that we can easily execute our Db queries
+        mApplication = getActivity().getApplication();
+        mDataRepository = ((BasicApp) mApplication).getRepository();
+
+
+        mRoutineIdNameMap = new LinkedHashMap<>();
+        mRoutines  = mDataRepository.loadRoutines();
+
+        // Create RoutineId/Name map used to easily flip between routines when the user uses the spinner
+        for (Routine routine : mRoutines) {
+            mRoutineIdNameMap.put(routine.getName(), routine.getId());
+        }
+
+        mActiveRoutineId = determineActiveRoutineId(mRoutines);
+        mActiveRoutine = createRoutineObject(mActiveRoutineId);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_recent_workouts, container, false);
+
+        // Get the Empty Routines view
+        mEmptyRoutinesView = (View) v.findViewById(R.id.empty_routines_view);
+        if (mRoutines != null) {
+            mEmptyRoutinesView.setVisibility(View.GONE);
+        }
+
+        mRecentWorkoutViews = new ArrayList<>();
+
+        // Nested for loops to initialize all of our TextViews for our most recent workout days
+        for (int i = 0; i < MAX_RECENT_WORKOUT_DAYS; i++) {
+            RecentWorkoutViews recentWorkoutView = new RecentWorkoutViews();
+
+            // Get a reference to the CardView that holds all the below TextViews
+            int resId = recentWorkoutView.resIdGenerator((i + 1) + "");
+            recentWorkoutView.mCardView = (CardView) v.findViewById(resId);
+
+            // Get a reference to the date text view, create the date string, and set the TextView
+            resId = recentWorkoutView.resIdGenerator((i + 1) + "_date");
+            recentWorkoutView.mDateTextView = (TextView) v.findViewById(resId);
+
+            for (int j = 0; j < RecentWorkoutViews.EXERCISES_PER_CARDVIEW; j++) {
+                // Add a new ExerciseViews within the recentWorkoutView and then retrieve it
+                recentWorkoutView.addEmptyExerciseView();
+                RecentWorkoutViews.ExerciseViews exerciseViews = recentWorkoutView.mExerciseViews.get(j);
+
+                // Get a reference to the exercise name text view and set it to the current exercise's name
+                resId = recentWorkoutView.resIdGenerator((i + 1) + "_exercise" + (j + 1));
+                exerciseViews.mNameTextView = (TextView) v.findViewById(resId);
+
+                // Get a reference to the exercise details text view, create the details string, and set the TextView
+                resId = recentWorkoutView.resIdGenerator((i + 1) + "_exercise" + (j + 1) + "_details");
+                exerciseViews.mDetailsTextView = (TextView) v.findViewById(resId);
+            }
+            // Add the recentWorkoutView element to the list of RecentWorkoutViews
+            mRecentWorkoutViews.add(recentWorkoutView);
+        }
+
+        // Initializing the FloatingActionButton
+        mFloatingActionButton = v.findViewById(R.id.fab_new_workout_day);
+        mFloatingActionButton.setOnClickListener((View view) -> {
+            // Add and go to new RoutineDay
+        });
+
+        // Initializing the BottomNavigationView
+        mBottomNavView = (BottomNavigationView) v.findViewById(R.id.recent_workouts_bottom_navigation);
+
+        // lambda expression used for the OnNavigationItemSelectedListener - the overrided method is boolean onNavigationItemSelected(@NonNull MenuItem item);
+        mBottomNavView.setOnNavigationItemSelectedListener((MenuItem item) -> {
+            switch (item.getItemId()) {
+                case R.id.action_home:
+                    break;
+                case R.id.action_routines:
+                    break;
+                case R.id.action_history:
+                    break;
+            }
+            return false;
+        });
+
+        /* Background AsynTask that calls createRoutineObject(mRoutineId) on the background thread and assigns
+           the returned Routine to mActiveRoutine, then calls updateUI() */
+        new CreateRoutineTask(mActiveRoutineId).execute();
+
+        return v;
+    }
+
     /* In order to get valid access to the hosting activity through getActivity() we need to call it here).
        Also, to get our support action bar we need to call getSupportActionBar() here and NOT in Fragment.onAttach() since if
        we call getSupportActionBar() in Fragment.onAttach() our app will crash with a NullPointerException when the activity is rotated
@@ -84,95 +175,10 @@ public class RecentWorkoutsFragment extends Fragment {
         init_toolbar(getActivity());
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        // Get our DataRepository so that we can easily execute our Db queries
-        mApplication = getActivity().getApplication();
-        mDataRepository = ((BasicApp) mApplication).getRepository();
-
-        // Query for our data that is displayed on this screen, and create a full Routine object if the required data exists
-        loadRequiredData();
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_recent_workouts, container, false);
-
-        // Get the Empty Routines view
-        mEmptyRoutinesView = (View) v.findViewById(R.id.empty_routines_view);
-        if (mRoutines != null) {
-            mEmptyRoutinesView.setVisibility(View.GONE);
-        }
-
-
-        mRecentWorkoutViews = new ArrayList<>();
-
-        // Initialize all the TextView items, etc. for this page
-        if (mActiveRoutine != null && mActiveRoutine.getRoutineDays() != null) {
-            // Nested for loops to initialize all of our text views for our most recent workout days
-            for (int i = 0; i < mActiveRoutine.getRoutineDays().size(); i++) {
-                RecentWorkoutViews recentWorkoutView = new RecentWorkoutViews();
-                RoutineDay routineDay = mActiveRoutine.getRoutineDays().get(i);
-
-                // Get a reference to the date text view, create the date string, and set the TextView
-                int resId = recentWorkoutView.resIdGenerator((i + 1) + "_date");
-                recentWorkoutView.mDateTextView = (TextView) v.findViewById(resId);
-                String dateString = recentWorkoutView.createDateString(routineDay.getDate(), routineDay.isCompleted());
-                recentWorkoutView.mDateTextView.setText(dateString);
-
-                for (int j = 0; j < routineDay.getExercises().size(); j++) {
-                    // Get current exercise
-                    Exercise exercise = routineDay.getExercises().get(j);
-
-                    // Add a new ExerciseViews within the recentWorkoutView and then retrieve it
-                    recentWorkoutView.addEmptyExerciseView();
-                    RecentWorkoutViews.ExerciseViews exerciseViews = recentWorkoutView.mExerciseViews.get(j);
-
-                    // Get a reference to the exercise name text view and set it to the current exercise's name
-                    resId = recentWorkoutView.resIdGenerator((i + 1) + "_exercise" + (j + 1));
-                    exerciseViews.mNameTextView = (TextView) v.findViewById(resId);
-                    exerciseViews.mNameTextView.setText(exercise.getName());
-
-                    // Get a reference to the exercise details text view, create the details string, and set the TextView
-                    resId = recentWorkoutView.resIdGenerator((i + 1) + "_exercise" + (j + 1) + "_details");
-                    exerciseViews.mDetailsTextView = (TextView) v.findViewById(resId);
-                    String detailsString = recentWorkoutView.createExerciseDetailsString(exercise);
-                    exerciseViews.mDetailsTextView.setText(detailsString);
-                }
-                // Add the recentWorkoutView element to the list of RecentWorkoutViews
-                mRecentWorkoutViews.add(recentWorkoutView);
-            }
-        }
-
-        return v;
-    }
-
     // Method to consolidate our Db queries that we need to execute when the screen is loaded
     private void loadRequiredData() {
 
-        /*new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mRoutines  = mDataRepository.loadRoutines();
-            }
-        }) .start(); */
 
-        //LiveData<List<Routine>> x = mDataRepository.loadRoutines();
-        //LiveData<List<Routine>> y = mAppDatabase.routineDao().getAllRoutines();
-
-        mRoutineIdNameMap = new HashMap<>();
-        mRoutines  = mDataRepository.loadRoutines();
-
-        // Create RoutineId/Name map used to easily flip between routines when the user uses the spinner
-        for (Routine routine : mRoutines) {
-            mRoutineIdNameMap.put(routine.getId(), routine.getName());
-        }
-
-
-        mActiveRoutineId = determineActiveRoutineId(mRoutines);
-        mActiveRoutine = createRoutineObject(mActiveRoutineId);
 
     }
 
@@ -220,6 +226,9 @@ public class RecentWorkoutsFragment extends Fragment {
             }
         }
 
+        if (activeRoutine != null)
+            Log.i (TAG, activeRoutine.toString());
+
         return activeRoutine;
     }
 
@@ -235,51 +244,29 @@ public class RecentWorkoutsFragment extends Fragment {
         init_spinner (context, actionBar.getCustomView());
     }
 
-    // Method to setup the spinner contained in the toolbar
     private void init_spinner (Context context, View actionBarView) {
-
-        String activeRoutineName = "";
-        List<String> routineNames = new ArrayList<>();
-        int activeRoutineIndex;
-
         mToolbarSpinner = (AppCompatSpinner) actionBarView.findViewById(R.id.routines_spinner);
 
         // If there are saved routines
-        if (mRoutines.size() != 0) {
-            // Check if there is a saved current routine set
-            if (mActiveRoutineId != SharedPreferences.NO_ACTIVE_ROUTINE) {
-                for (Routine routine : mRoutines) {
-                    routineNames.add(routine.getName());
-                    if (routine.getId() == mActiveRoutineId) {
-                        activeRoutineName = routine.getName();
-                    }
-                }
-            }
-            else {
-                // If there isn't a saved selected routine, just set the selected routine to the first one
-                for (Routine routine : mRoutines) {
-                    routineNames.add(routine.getName());
-                }
-                activeRoutineName = routineNames.get(0);
-            }
-            // We need the index number of the selected routine to pass to the spinner adapter so that it is set as the starting item that's selected
-            activeRoutineIndex = routineNames.indexOf(activeRoutineName);
+        if (mActiveRoutineId != SharedPreferences.NO_ACTIVE_ROUTINE) {
+            List<String> routineNames = new ArrayList<>(mRoutineIdNameMap.keySet());
+            String activeRoutineName = getRoutineName(mActiveRoutineId, mRoutines);
 
-            // Get and configure our Spinner
-            //ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource (context, R.array.test_routines_array, R.layout.simple_spinner_item);
             ArrayAdapter<String> adapter = new ArrayAdapter<String> (context, R.layout.simple_spinner_item, routineNames);
-
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             mToolbarSpinner.setAdapter(adapter);
 
             // set the active routine as the selected item of the spinner
-            mToolbarSpinner.setSelection(activeRoutineIndex);
+            mToolbarSpinner.setSelection(routineNames.indexOf(activeRoutineName));
 
             // Item selection listener for the Spinner
             mToolbarSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     // An item was selected. You can retrieve the selected item using parent.getItemAtPosition(pos)
+                    String selectedRoutineName = (String) parent.getItemAtPosition(position);
+                    mActiveRoutineId = mRoutineIdNameMap.get(selectedRoutineName);
+                    new CreateRoutineTask(mActiveRoutineId).execute();
                 }
 
                 @Override
@@ -292,6 +279,63 @@ public class RecentWorkoutsFragment extends Fragment {
             // Hide the spinner since we don't have any routines created that we can select
             mToolbarSpinner.setVisibility (View.GONE);
         }
+    }
+
+    private void updateUI() {
+        if (mActiveRoutine != null && mActiveRoutine.getRoutineDays() != null) {
+            // Nested for loops to initialize all of our text views for our most recent workout days
+            for (int i=0; i < mRecentWorkoutViews.size(); i++) {
+                RecentWorkoutViews recentWorkoutView = mRecentWorkoutViews.get(i);
+                RoutineDay routineDay;
+
+                // Check if the relevant RoutineDay exists, if it doesn't we hide the CardView and go back to the top of the loop (all proceeding CardViews will be hidden)
+                if (mActiveRoutine.getRoutineDays().size() > i) {
+                    routineDay = mActiveRoutine.getRoutineDays().get(i);
+                    recentWorkoutView.mCardView.setVisibility(View.VISIBLE);
+                }
+                else {
+                    recentWorkoutView.mCardView.setVisibility(View.GONE);
+                    continue;
+                }
+
+                // Create the date string, and set the TextView
+                String dateString = recentWorkoutView.createDateString(routineDay.getDate(), routineDay.isCompleted());
+                recentWorkoutView.mDateTextView.setText(dateString);
+
+                //for (int j=0; j < routineDay.getExercises().size(); j++) {
+                for (int j=0; j < recentWorkoutView.mExerciseViews.size(); j++) {
+                    // Retrieve the relevant ExerciseViews within the recentWorkoutView
+                    RecentWorkoutViews.ExerciseViews exerciseViews = recentWorkoutView.mExerciseViews.get(j);
+                    Exercise exercise;
+
+                    // Check if the relevant Exercise exists, if it doesn't we clear the text from the relevant TextViews
+                    // and go back to the top of the loop (all proceeding TextViews will have their text cleared)
+                    if (routineDay.getExercises().size() > j) {
+                        exercise = routineDay.getExercises().get(j);
+                    }
+                    else {
+                        exerciseViews.mNameTextView.setText("");
+                        exerciseViews.mDetailsTextView.setText("");
+                        continue;
+                    }
+
+                    // Set the exercise name TextView to the current exercise's name
+                    exerciseViews.mNameTextView.setText(exercise.getName());
+
+                    // Create the exercise details string and set the TextView
+                    String detailsString = recentWorkoutView.createExerciseDetailsString(exercise);
+                    exerciseViews.mDetailsTextView.setText(detailsString);
+                }
+            }
+        }
+    }
+
+    private String getRoutineName (int routineId, List<Routine> routines) {
+        for (Routine routine : routines) {
+            if (routine.getId() == routineId)
+                return routine.getName();
+        }
+        return null;
     }
 
     // Method with a bunch of logic to determine the active routine id based on the routines we have in the DB and the saved SharedPreference routineId
@@ -333,6 +377,7 @@ public class RecentWorkoutsFragment extends Fragment {
             return getResources().getIdentifier(VIEW_ID_PREFIX + suffix, "id", getActivity().getPackageName());
         }
 
+        // TODO: there's going to eventually be some logic here to potentially set this string to "Next" when we don't have completed or ongoing RoutineDay's
         private String createDateString (Date date, boolean complete) {
             if (!complete) {
                 return "Ongoing";
@@ -352,6 +397,7 @@ public class RecentWorkoutsFragment extends Fragment {
 
         // TODO: This function hardcodes the set weights in pounds - eventually need to add flexibility for switch between pounds and kg
         private String createExerciseDetailsString (Exercise exercise) {
+            List<Set> exerciseSets = exercise.getSets();
             String detailsString = "";
             int targetNumSets = exercise.getTargetNumberSets();
 
@@ -368,30 +414,34 @@ public class RecentWorkoutsFragment extends Fragment {
                 boolean exerciseSkipped = true; // flag to determine of the exercise was completely skipped
 
                 // Loop through each reppedSet in the exercise
-                for (Set reppedSet : exercise.getSets()) {
-                    int setTargetWeight = ((ReppedSet) reppedSet).getTargetMeasurement().intValue();
-                    int setTargetReps = ((ReppedSet) reppedSet).getTargetMeasurement().intValue();
-                    int setActualReps = ((ReppedSet) reppedSet).getActualMeasurement().intValue();
+                for (Set reppedSet : exerciseSets) {
+                    int setTargetWeight = reppedSet.getTargetWeight();
+                    int setTargetReps = ((ReppedSet) reppedSet).getTargetMeasurement();
+                    int setActualReps = ((ReppedSet) reppedSet).getActualMeasurement();
 
                     // Logic to get the exercise's highest weight set
                     if (setTargetWeight > maxTargetWeight) {
                         maxTargetWeight = setTargetWeight;
                     }
                     // If at any point, the current set targetWeight is not equal to the previous set targetWeight, then we know all sets are not the same target weight
-                    if (setTargetWeight != previousSetTargetWeight) {
+                    if (setTargetWeight != previousSetTargetWeight && exerciseSets.indexOf(reppedSet) > 0) {
                         allSetsSameTargetWeight = false;
                     }
                     // Logic to get the exercise's highest target reps set
                     if (setTargetReps > maxTargetReps) {
                         maxTargetReps = setTargetReps;
                     }
-                    if (setTargetReps != previousSetTargetReps) {
+                    if (setTargetReps != previousSetTargetReps && exerciseSets.indexOf(reppedSet) > 0) {
                         allSetsSameTargetReps = false;
                     }
                     // If at any point, the current set targetReps is not equal to the set actualReps, then we know that all of the exercise's sets were not completed successfully
                     if (setActualReps != setTargetReps) {
                         allSetsSuccessfullyCompleted = false;
                     }
+
+                    previousSetTargetWeight = setTargetWeight;
+                    previousSetTargetReps = setTargetReps;
+
                     // If the setActualReps equals ReppedSet.ACTUAL_REPS_NULL the set has been skipped, so we increment our skippedSetCount
                     if (setActualReps == ReppedSet.ACTUAL_REPS_NULL) {
                         skippedSetCount++;
@@ -399,6 +449,7 @@ public class RecentWorkoutsFragment extends Fragment {
                         continue; // We want to go back to the top of the for loop since the code below that adds to detailsString will double count the set if we don't
 
                     }
+
                     detailsString += setActualReps + "/";
                 }
 
@@ -406,12 +457,10 @@ public class RecentWorkoutsFragment extends Fragment {
 
                 if ((allSetsSameTargetWeight && allSetsSameTargetReps && allSetsSuccessfullyCompleted) || (targetNumSets == 1 && skippedSetCount == 0)) {
                     detailsString = targetNumSets + "x" + maxTargetReps + " " + maxTargetWeight + "lb";  // TODO: change hardcode of lb (pounds) here
-                }
-                else if (targetNumSets == skippedSetCount) {
+                } else if (targetNumSets == skippedSetCount) {
                     detailsString = "Skipped";
                 }
-            }
-            else if (exercise.getType().equals(Exercise.TIMED)) {
+            } else if (exercise.getType().equals(Exercise.TIMED)) {
                 // Some other logic here for when we implement timed sets - a lot of it will be similar to the above, so we'll have to make the above code more abstract eventually
             }
 
@@ -431,5 +480,28 @@ public class RecentWorkoutsFragment extends Fragment {
 
             private ExerciseViews() { }
         }
+    }
+
+    // Create a background thread to perform the queries to create the routine task
+    private class CreateRoutineTask extends AsyncTask<Void, Void, Routine> {
+
+        private int mRoutineId;
+
+        public CreateRoutineTask (int routineId) {
+            mRoutineId = routineId;
+        }
+
+        // the "Void..." means can pass any number of void parameters
+        @Override
+        protected Routine doInBackground (Void... params) {
+            return createRoutineObject(mRoutineId);
+        }
+
+        @Override
+        protected void onPostExecute (Routine routine) {
+            mActiveRoutine = routine;
+            updateUI();
+        }
+
     }
 }

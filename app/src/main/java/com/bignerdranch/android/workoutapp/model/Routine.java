@@ -107,4 +107,20 @@ public class Routine {
         }
         return null;
     }
+
+    @Override
+    public String toString() {
+        String str = "";
+
+        str += "Routine: " + getId() + "-" + getName() + ", " + "Created: " + getDateCreated().toString() + "\n";
+        if (routineDays != null) {
+            for (RoutineDay routineDay : routineDays) {
+                str += routineDay.toString();
+            }
+        }
+
+        return str;
+
+        //return "Routine: " + getId() + "-" + getName() + ", " + "Created: " + getDateCreated().toString() + "\n";
+    }
 }

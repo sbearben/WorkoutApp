@@ -42,7 +42,7 @@ public class Exercise {
     private int number; // is the number of the exercise in the routine - might not be needed
 
     @ColumnInfo(name = ExerciseTable.Cols.EXERCISE_NUM_SETS)
-    private int mTargetNumberSets;
+    private int targetNumberSets;
 
     @ColumnInfo(name = ExerciseTable.Cols.EXERCISE_TYPE)
     private String type;
@@ -59,13 +59,15 @@ public class Exercise {
     public Exercise() {
     }
 
-    public Exercise (int id, int routineDayId, String name, int number, String type) {
+    public Exercise (int id, int routineDayId, String name, int number, int targetNumberSets, String type) {
         //mNumberSets = 3;
         this.id = id;
         this.routineDayId = routineDayId;
         this.name = name;
         this.number = number;
+        this.targetNumberSets = targetNumberSets;
         this.type = type;
+
 
         this.sets = new ArrayList<>();
         //initializeSets();
@@ -124,11 +126,11 @@ public class Exercise {
     }
 
     public int getTargetNumberSets() {
-        return mTargetNumberSets;
+        return targetNumberSets;
     }
 
     public void setTargetNumberSets(int targetNumberSets) {
-        this.mTargetNumberSets = targetNumberSets;
+        this.targetNumberSets = targetNumberSets;
     }
 
     public String getType() {
@@ -169,5 +171,25 @@ public class Exercise {
 
     public void addSets (List<Set> sets) {
         this.sets.addAll(sets);
+    }
+
+    @Override
+    public String toString() {
+        String str = "";
+
+        str += "Exercise: " + getId() + ", Name: " + getName() + "\n" +
+                "\t" + "Parent RoutineDay Id: " + getRoutineDayId() + ", Exercise#: " + getNumber() + "\n" +
+                "\t" + "Target # sets: " + getTargetNumberSets() + ", Type: " + getType() + "\n";
+        if (sets != null) {
+            for (Set set : sets) {
+                str += set.toString();
+            }
+        }
+
+        return str;
+
+        /*return "Exercise: " + getId() + ", Name: " + getName() + "\n" +
+                "\t" + "Parent RoutineDay Id: " + getRoutineDayId() + ", Exercise#: " + getNumber() + "\n" +
+                "\t" + "Target # sets: " + getTargetNumberSets() + ", Type: " + getType() + "\n";*/
     }
 }

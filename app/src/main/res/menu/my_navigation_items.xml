@@ -2,17 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/action_search"
+    <item android:id="@+id/action_home"
         android:enabled="true"
         android:title="@string/menu_home"
         android:icon="@drawable/ic_bottomnav_home"
         app:showAsAction="ifRoom" />
-    <item android:id="@+id/action_settings"
+    <item android:id="@+id/action_routines"
         android:enabled="true"
         android:title="@string/menu_routines"
         android:icon="@drawable/ic_bottomnav_routines"
         app:showAsAction="ifRoom" />
-    <item android:id="@+id/action_navigation"
+    <item android:id="@+id/action_history"
         android:enabled="true"
         android:title="@string/menu_history"
         android:icon="@drawable/ic_bottomnav_history"

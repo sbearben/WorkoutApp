@@ -21,14 +21,14 @@
         <item name="android:layout_margin">8dp</item>
         <item name="cardCornerRadius">4dp</item>
         <item name="cardElevation">0dp</item>
-        <item name="android:weightSum">12</item>
+        <item name="android:weightSum">16</item>
     </style>
 
     <!-- First TextView that holds the workout date -->
     <style name="workoutDateTextViewStyle">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">3</item>
+        <item name="android:layout_weight">4</item>
         <item name="android:textSize">17sp</item>
         <item name="android:textColor">@color/mediumDarkGray</item>
         <item name="android:textAlignment">center</item>
@@ -40,14 +40,14 @@
     <style name="exerciseNameLinearLayoutStyle">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">4</item>
+        <item name="android:layout_weight">5</item>
         <item name="android:padding">5dp</item>
         <item name="android:orientation">vertical</item>
     </style>
 
     <!-- LinearLayout style for the section that holds exercise details -->
     <style name="exerciseDetailsLinearLayoutStyle" parent="exerciseNameLinearLayoutStyle">
-        <item name="android:layout_weight">6</item>
+        <item name="android:layout_weight">7</item>
     </style>
 
     <!-- The TextViews that hold the exercise names and metrics -->
@@ -57,7 +57,6 @@
         <item name="android:layout_margin">5dp</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/darkGray</item>
-        <item name="android:ellipsize">marquee</item>
     </style>
 
 

@@ -111,4 +111,11 @@ public abstract class Set<T> {
     public void setActualMeasurement(T actualMeasurement) {
         this.actualMeasurement = actualMeasurement;
     }
+
+    @Override
+    public String toString() {
+        return "Set: " + getId() + ", Parent Exercise Id: " + getExerciseId() + "\n" +
+                "\t" + "Set Number: " + getSetNumber() + ", Target Weight: " + getTargetWeight() + "\n" +
+                "\t" + "Target Measurement: " + getTargetMeasurement().toString() + ", Actual Measurement: " + getActualMeasurement().toString() + "\n";
+    }
 }

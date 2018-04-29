@@ -35,4 +35,11 @@ public class ReppedSet extends Set<Integer> {
         super(exerciseId, setNumber, 45);
         this.targetMeasurement = 8;
     }
+
+    @Override
+    public String toString() {
+        return "ReppedSet: " + getId() + ", Parent Exercise Id: " + getExerciseId() + "\n" +
+                "\t" + "Set Number: " + getSetNumber() + ", Target Weight: " + getTargetWeight() + "\n" +
+                "\t" + "Target Reps: " + getTargetMeasurement() + ", Actual Reps: " + getActualMeasurement() + "\n";
+    }
 }

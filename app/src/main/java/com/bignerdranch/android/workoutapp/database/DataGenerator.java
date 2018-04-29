@@ -16,6 +16,8 @@
 
 package com.bignerdranch.android.workoutapp.database;
 
+import android.util.Log;
+
 import com.bignerdranch.android.workoutapp.model.Exercise;
 import com.bignerdranch.android.workoutapp.model.ReppedSet;
 import com.bignerdranch.android.workoutapp.model.Routine;
@@ -32,6 +34,8 @@ import java.util.concurrent.TimeUnit;
  * Generates data to pre-populate the database
  */
 public class DataGenerator {
+
+    private static final String TAG = "DataGenerator";
 
     private static final String[] routine_names = new String[]{
             "SL 5x5", "Aesthetic Workout"};
@@ -65,6 +69,8 @@ public class DataGenerator {
             routine.setId(i + 1);
 
             routines.add(routine);
+
+            Log.i (TAG, routine.toString());
         }
 
         return routines;
@@ -88,7 +94,9 @@ public class DataGenerator {
                 routineDay.setCompleted(true);
 
                 routineDays.add(routineDay);
-                currentDayNumber = (i%numDaysInRoutine) + 1;
+                currentDayNumber = ((i+1)%numDaysInRoutine) + 1;
+
+                Log.i (TAG, routineDay.toString());
             }
         }
 
@@ -98,6 +106,7 @@ public class DataGenerator {
     public static List<Exercise> generateExercises (final List<RoutineDay> routineDays, final List<Routine> routines) {
         List<Exercise> exercises = new ArrayList<>();
         Random rnd = new Random();
+        int exerciseId = 2000;
 
         for (RoutineDay routineDay : routineDays) {
             int routineId = routineDay.getRoutineId();
@@ -113,7 +122,7 @@ public class DataGenerator {
             for (int i = 0; i < upper; i++) {
                 Exercise exercise = new Exercise();
 
-                exercise.setId(2000 + upper*routineDays.indexOf(routineDay) + i);
+                exercise.setId(exerciseId);
                 exercise.setRoutineDayId(routineDay.getId());
                 exercise.setName(routine_days[routineIndex][routineDay.getDayNumber()-1][i]);
                 exercise.setNumber(i+1);
@@ -121,6 +130,9 @@ public class DataGenerator {
                 exercise.setType(Exercise.REPPED);
 
                 exercises.add(exercise);
+                exerciseId++;
+
+                Log.i (TAG, exercise.toString());
             }
         }
 
@@ -130,6 +142,7 @@ public class DataGenerator {
     public static List<ReppedSet> generateReppedSets (final List<Exercise> exercises) {
         List<ReppedSet> reppedSets = new ArrayList<>();
         Random rnd = new Random();
+        int reppedSetId = 4000;
 
         for (Exercise exercise : exercises) {
             //int numCompletedSets = rnd.nextInt(exercise.getTargetNumberSets()+1);
@@ -137,7 +150,7 @@ public class DataGenerator {
             for (int i=0; i < exercise.getTargetNumberSets(); i++) {
                 ReppedSet reppedSet = new ReppedSet();
 
-                reppedSet.setId(3000 + exercise.getTargetNumberSets()*exercises.indexOf(exercise) + i);
+                reppedSet.setId(reppedSetId);
                 reppedSet.setExerciseId(exercise.getId());
                 reppedSet.setSetNumber(i+1);
                 reppedSet.setTargetWeight(target_weight_options[rnd.nextInt(target_weight_options.length)]);
@@ -149,8 +162,10 @@ public class DataGenerator {
                 // - so this code will set reppedSet.actualMeasurement to a value between -1 and reppedSet.targetMeasurement
                 reppedSet.setActualMeasurement(rnd.nextInt(reppedSet.getTargetMeasurement()+2)-1);
 
-
                 reppedSets.add(reppedSet);
+                reppedSetId++;
+
+                Log.i (TAG, reppedSet.toString());
 
             }
         }
