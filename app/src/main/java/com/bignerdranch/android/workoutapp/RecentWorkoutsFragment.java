@@ -139,9 +139,8 @@ public class RecentWorkoutsFragment extends Fragment {
             // Add and go to new RoutineDay
         });
 
-        // Initializing the BottomNavigationView
+        /*// Initializing the BottomNavigationView
         mBottomNavView = (BottomNavigationView) v.findViewById(R.id.recent_workouts_bottom_navigation);
-
         // lambda expression used for the OnNavigationItemSelectedListener - the overrided method is boolean onNavigationItemSelected(@NonNull MenuItem item);
         mBottomNavView.setOnNavigationItemSelectedListener((MenuItem item) -> {
             switch (item.getItemId()) {
@@ -153,7 +152,7 @@ public class RecentWorkoutsFragment extends Fragment {
                     break;
             }
             return false;
-        });
+        });*/
 
         /* Background AsynTask that calls createRoutineObject(mRoutineId) on the background thread and assigns
            the returned Routine to mActiveRoutine, then calls updateUI() */
@@ -174,14 +173,6 @@ public class RecentWorkoutsFragment extends Fragment {
         // Setup our custom toolbar and Spinner
         init_toolbar(getActivity());
     }
-
-    // Method to consolidate our Db queries that we need to execute when the screen is loaded
-    private void loadRequiredData() {
-
-
-
-    }
-
 
     // Creates a full Routine object if all the required data exists
     private Routine createRoutineObject (int activeRoutineId) {

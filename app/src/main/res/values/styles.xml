@@ -17,4 +17,10 @@
     <style name="spinnerDropDownItemStyle">
     </style>
 
+    <!-- Button style for the buttons that keep track of the number of reps completed in RoutineDayPageFragment -->
+    <style name="ExerciseSetButton" parent="android:style/Widget.Holo.Button">
+        <item name="android:background">@drawable/button_exercise_set</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
 </resources>

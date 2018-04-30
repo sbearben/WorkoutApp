@@ -70,7 +70,7 @@ public class DataGenerator {
 
             routines.add(routine);
 
-            Log.i (TAG, routine.toString());
+            //Log.i (TAG, routine.toString());
         }
 
         return routines;
@@ -96,7 +96,7 @@ public class DataGenerator {
                 routineDays.add(routineDay);
                 currentDayNumber = ((i+1)%numDaysInRoutine) + 1;
 
-                Log.i (TAG, routineDay.toString());
+                //Log.i (TAG, routineDay.toString());
             }
         }
 
@@ -132,7 +132,7 @@ public class DataGenerator {
                 exercises.add(exercise);
                 exerciseId++;
 
-                Log.i (TAG, exercise.toString());
+                //Log.i (TAG, exercise.toString());
             }
         }
 
@@ -165,7 +165,7 @@ public class DataGenerator {
                 reppedSets.add(reppedSet);
                 reppedSetId++;
 
-                Log.i (TAG, reppedSet.toString());
+                //Log.i (TAG, reppedSet.toString());
 
             }
         }

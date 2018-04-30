@@ -5,7 +5,6 @@ import android.support.annotation.LayoutRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 
 /**
  * Created by Armon on 15/03/2018.
@@ -18,7 +17,7 @@ public abstract class SingleFragmentActivity extends AppCompatActivity {
     // @LayoutRes tells Android Studio that any implementation of this method should return a valid layout resource ID
     @LayoutRes
     protected int getLayoutResId() {
-        return R.layout.activity_fragment;
+        return R.layout.bottomnav_activity_fragment;
     }
 
     @Override
