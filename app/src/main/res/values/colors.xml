@@ -2,10 +2,15 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimaryDarker">#232F77</color>
     <color name="colorAccent">#FF4081</color>
 
-    <color name="lightGray">#F4F4F4</color>
-    <color name="darkLightGray">#E7E7E7</color>
+    <color name="lightGray">#F1F1F1</color>
+    <color name="mediumLightGray">#E7E7E7</color>
+    <color name="darkLightGray">#D1D1D1</color>
+    <color name="lightMediumGray">#C1C1C1</color>
+    <color name="mediumGray">#B1B1B1</color>
+    <color name="darkMediumGray">#888888</color>
     <color name="mediumDarkGray">#4c4c4c</color>
     <color name="darkGray">#2b2b2b</color>
     <color name="white">#FFFFFF</color>
@@ -14,4 +19,6 @@
     <!-- The following values taken from the @style/ThemeOverlay.AppCompat.Dark.ActionBar theme -->
     <color name="default_material_dark">#ffffffff</color>
     <color name="disabled_material_dark">#4Dffffff</color>
+
+    <color name="exerciseSetButtonInactive">#E1E1E1</color>
 </resources>

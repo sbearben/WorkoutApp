@@ -17,7 +17,7 @@ public abstract class SingleFragmentActivity extends AppCompatActivity {
     // @LayoutRes tells Android Studio that any implementation of this method should return a valid layout resource ID
     @LayoutRes
     protected int getLayoutResId() {
-        return R.layout.bottomnav_activity_fragment;
+        return R.layout.activity_fragment;
     }
 
     @Override

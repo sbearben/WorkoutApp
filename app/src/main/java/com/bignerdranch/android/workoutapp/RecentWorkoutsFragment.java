@@ -3,6 +3,7 @@ package com.bignerdranch.android.workoutapp;
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
@@ -47,24 +48,21 @@ public class RecentWorkoutsFragment extends Fragment {
     private static final int MAX_RECENT_WORKOUT_DAYS = 3;
 
     private DataRepository mDataRepository;
-    private Application mApplication;
 
     // All of the variables for the data displayed on this screen
     private int mActiveRoutineId;
     private Routine mActiveRoutine;
     private List<Routine> mRoutines;
     private Map<String, Integer> mRoutineIdNameMap;
+    private List<Integer> mRoutineDayIds;
 
     private AppCompatSpinner mToolbarSpinner;
     private View mEmptyRoutinesView;
     private Button mEmptyRoutinesButton;
-
     private FloatingActionButton mFloatingActionButton;
-    private BottomNavigationView mBottomNavView;
 
     // All the items that hold the details of our recent workouts
     private List<RecentWorkoutViews> mRecentWorkoutViews;
-
 
 
     public static RecentWorkoutsFragment newInstance() {
@@ -76,8 +74,8 @@ public class RecentWorkoutsFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         // Get our DataRepository so that we can easily execute our Db queries
-        mApplication = getActivity().getApplication();
-        mDataRepository = ((BasicApp) mApplication).getRepository();
+        Application application = getActivity().getApplication();
+        mDataRepository = ((BasicApp) application).getRepository();
 
 
         mRoutineIdNameMap = new LinkedHashMap<>();
@@ -89,7 +87,6 @@ public class RecentWorkoutsFragment extends Fragment {
         }
 
         mActiveRoutineId = determineActiveRoutineId(mRoutines);
-        mActiveRoutine = createRoutineObject(mActiveRoutineId);
     }
 
     @Override
@@ -106,11 +103,19 @@ public class RecentWorkoutsFragment extends Fragment {
 
         // Nested for loops to initialize all of our TextViews for our most recent workout days
         for (int i = 0; i < MAX_RECENT_WORKOUT_DAYS; i++) {
+            final int i_copy = i; // I needed to create this variable because I can't use 'i' in the CardView onClickListener since it must be final
             RecentWorkoutViews recentWorkoutView = new RecentWorkoutViews();
 
             // Get a reference to the CardView that holds all the below TextViews
             int resId = recentWorkoutView.resIdGenerator((i + 1) + "");
             recentWorkoutView.mCardView = (CardView) v.findViewById(resId);
+            // Set the CardView's onClickListner to open up the RoutineDay page if the routine day is clicked on
+            recentWorkoutView.mCardView.setOnClickListener((View view) -> {
+                if (mRoutineDayIds != null) {
+                    Intent intent = RoutineDayPageActivity.newIntent(getActivity(), mRoutineDayIds.get(i_copy));
+                    startActivity(intent);
+                }
+            });
 
             // Get a reference to the date text view, create the date string, and set the TextView
             resId = recentWorkoutView.resIdGenerator((i + 1) + "_date");
@@ -139,21 +144,6 @@ public class RecentWorkoutsFragment extends Fragment {
             // Add and go to new RoutineDay
         });
 
-        /*// Initializing the BottomNavigationView
-        mBottomNavView = (BottomNavigationView) v.findViewById(R.id.recent_workouts_bottom_navigation);
-        // lambda expression used for the OnNavigationItemSelectedListener - the overrided method is boolean onNavigationItemSelected(@NonNull MenuItem item);
-        mBottomNavView.setOnNavigationItemSelectedListener((MenuItem item) -> {
-            switch (item.getItemId()) {
-                case R.id.action_home:
-                    break;
-                case R.id.action_routines:
-                    break;
-                case R.id.action_history:
-                    break;
-            }
-            return false;
-        });*/
-
         /* Background AsynTask that calls createRoutineObject(mRoutineId) on the background thread and assigns
            the returned Routine to mActiveRoutine, then calls updateUI() */
         new CreateRoutineTask(mActiveRoutineId).execute();
@@ -175,14 +165,17 @@ public class RecentWorkoutsFragment extends Fragment {
     }
 
     // Creates a full Routine object if all the required data exists
-    private Routine createRoutineObject (int activeRoutineId) {
+    private Routine createRoutineObject (int routineId) {
         Routine activeRoutine = null;
 
-        if (activeRoutineId != SharedPreferences.NO_ACTIVE_ROUTINE) {
-            activeRoutine = mDataRepository.loadRoutine(activeRoutineId);
+        // Initialize our list of RoutineDayIds
+        mRoutineDayIds = new ArrayList<>(MAX_RECENT_WORKOUT_DAYS);
+
+        if (routineId != SharedPreferences.NO_ACTIVE_ROUTINE) {
+            activeRoutine = mDataRepository.loadRoutine(routineId);
 
             // Get RoutineDays
-            List<RoutineDay> routineDays = mDataRepository.loadMostRecentDaysInRoutine(activeRoutineId, MAX_RECENT_WORKOUT_DAYS);
+            List<RoutineDay> routineDays = mDataRepository.loadMostRecentDaysInRoutine(routineId, MAX_RECENT_WORKOUT_DAYS);
             if (routineDays == null) {
                 return null;
             }
@@ -190,6 +183,9 @@ public class RecentWorkoutsFragment extends Fragment {
 
             // Get the Exercises for each RoutineDay
             for (RoutineDay routineDay : activeRoutine.getRoutineDays()) {
+                // Add the RoutineDay's Id to our list we're keeping track of
+                mRoutineDayIds.add(routineDay.getId());
+
                 // Get first three exercises for each day
                 List<Exercise> dayExercises = mDataRepository.loadFirstNExercisesInRoutineDay(routineDay.getId(), RecentWorkoutViews.EXERCISES_PER_CARDVIEW);
                 if (dayExercises == null) {
@@ -217,8 +213,8 @@ public class RecentWorkoutsFragment extends Fragment {
             }
         }
 
-        if (activeRoutine != null)
-            Log.i (TAG, activeRoutine.toString());
+        //if (activeRoutine != null)
+            //Log.i (TAG, activeRoutine.toString());
 
         return activeRoutine;
     }
@@ -254,10 +250,11 @@ public class RecentWorkoutsFragment extends Fragment {
             mToolbarSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    // An item was selected. You can retrieve the selected item using parent.getItemAtPosition(pos)
                     String selectedRoutineName = (String) parent.getItemAtPosition(position);
                     mActiveRoutineId = mRoutineIdNameMap.get(selectedRoutineName);
                     new CreateRoutineTask(mActiveRoutineId).execute();
+                    // Save the selected RoutineId in SharedPreferences so that we can load the correct Routine if we navigate away and back again
+                    SharedPreferences.setActiveRoutineId(context, mActiveRoutineId);
                 }
 
                 @Override
@@ -473,7 +470,7 @@ public class RecentWorkoutsFragment extends Fragment {
         }
     }
 
-    // Create a background thread to perform the queries to create the routine task
+    // Create a background thread to perform the queries to create the Routine object
     private class CreateRoutineTask extends AsyncTask<Void, Void, Routine> {
 
         private int mRoutineId;
@@ -482,7 +479,6 @@ public class RecentWorkoutsFragment extends Fragment {
             mRoutineId = routineId;
         }
 
-        // the "Void..." means can pass any number of void parameters
         @Override
         protected Routine doInBackground (Void... params) {
             return createRoutineObject(mRoutineId);
@@ -493,6 +489,5 @@ public class RecentWorkoutsFragment extends Fragment {
             mActiveRoutine = routine;
             updateUI();
         }
-
     }
 }

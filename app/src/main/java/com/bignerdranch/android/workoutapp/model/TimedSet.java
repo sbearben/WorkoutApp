@@ -5,6 +5,7 @@ import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -28,6 +29,31 @@ public class TimedSet extends Set<Date> {
 
     public TimedSet (int id, int exerciseId, int setNumber, int targetWeight, Date targetMeasurement, Date actualMeasurement) {
         super(id, exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
+    }
+
+    @Override
+    public String actualMeasurementString() {
+        return dateToString(getActualMeasurement());
+    }
+
+    @Override
+    public String targetMeasurementString() {
+        return dateToString(getTargetMeasurement());
+    }
+
+    @Override
+    public boolean isSetNull() {
+        return false; // TODO: Implement this properly
+    }
+
+    private String dateToString (Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+
+        int minutes = calendar.get(Calendar.MINUTE);
+        int seconds = calendar.get(Calendar.SECOND);
+
+        return minutes + ":" + seconds;
     }
 
     @Ignore

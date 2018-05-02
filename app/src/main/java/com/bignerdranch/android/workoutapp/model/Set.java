@@ -112,6 +112,16 @@ public abstract class Set<T> {
         this.actualMeasurement = actualMeasurement;
     }
 
+    // Abstract method that subclasses implement in order to properly print their mActualMeasurement fields
+    public abstract String actualMeasurementString();
+
+    // Abstract method that subclasses implement in order to properly print their mTargetMeasurement fields
+    public abstract String targetMeasurementString();
+
+    // Abstract method that returns a boolean based on whether the set is null (was performed/skipped) or not
+    // - if this returns true then the set was skipped, if not then the set was performed
+    public abstract boolean isSetNull();
+
     @Override
     public String toString() {
         return "Set: " + getId() + ", Parent Exercise Id: " + getExerciseId() + "\n" +

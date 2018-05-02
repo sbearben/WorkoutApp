@@ -37,6 +37,21 @@ public class ReppedSet extends Set<Integer> {
     }
 
     @Override
+    public String actualMeasurementString() {
+        return getActualMeasurement() + "";
+    }
+
+    @Override
+    public String targetMeasurementString() {
+        return getTargetMeasurement() + "";
+    }
+
+    @Override
+    public boolean isSetNull() {
+        return getActualMeasurement() == ACTUAL_REPS_NULL;
+    }
+
+    @Override
     public String toString() {
         return "ReppedSet: " + getId() + ", Parent Exercise Id: " + getExerciseId() + "\n" +
                 "\t" + "Set Number: " + getSetNumber() + ", Target Weight: " + getTargetWeight() + "\n" +

@@ -22,9 +22,15 @@ public class SquareButton extends AppCompatButton {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
-        int size = width > height ? height : width;
-        setMeasuredDimension(size, size);
+        if(width > height){
+            setMeasuredDimension(getMeasuredWidth(), getMeasuredWidth());
+        }
+        else {
+            setMeasuredDimension(getMeasuredHeight(), getMeasuredHeight());
+        }
     }
 }

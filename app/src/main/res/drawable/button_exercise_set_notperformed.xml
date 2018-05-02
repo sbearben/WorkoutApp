@@ -2,5 +2,9 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@drawable/button_exercise_set_inactive"
         android:state_enabled="false"/>
-    <item android:drawable="@drawable/button_exercise_set_selected" />
+
+    <item android:drawable="@drawable/button_exercise_set_notperformed_selected"
+        android:state_pressed="true"/>
+
+    <item android:drawable="@drawable/button_exercise_set_notperformed_normal" />
 </selector>
