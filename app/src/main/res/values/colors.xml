@@ -15,7 +15,6 @@
     <color name="darkGray">#2b2b2b</color>
     <color name="white">#FFFFFF</color>
 
-
     <!-- The following values taken from the @style/ThemeOverlay.AppCompat.Dark.ActionBar theme -->
     <color name="default_material_dark">#ffffffff</color>
     <color name="disabled_material_dark">#4Dffffff</color>

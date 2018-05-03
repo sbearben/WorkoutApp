@@ -8,13 +8,18 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <!-- For stylizing the Spinner -->
+    <!-- For stylizing the Spinner in RecentWorkouts-->
     <style name="spinnerItemStyle" parent="android:Widget.TextView.SpinnerItem">
         <item name="android:textColor">@color/default_material_dark</item>
         <item name="android:textSize">17sp</item>
         <item name="android:padding">5dp</item>
     </style>
     <style name="spinnerDropDownItemStyle">
+    </style>
+
+    <!-- For stylizing the NumberPicker -->
+    <style name="NumberPickerStyle">
+        <item name="android:textSize">20sp</item>
     </style>
 
 
@@ -85,6 +90,9 @@
 
     <!-- Button style for the buttons that keep track of the number of reps completed in RoutineDayPageFragment -->
     <style name="ExerciseSetButton" parent="android:style/Widget.Holo.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">5dp</item>
         <item name="android:background">@drawable/button_exercise_set_performed</item>
         <item name="android:stateListAnimator">@animator/button_exercise_set</item>
         <item name="android:textColor">@color/white</item>

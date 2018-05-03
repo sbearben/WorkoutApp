@@ -103,7 +103,7 @@ public class RecentWorkoutsFragment extends Fragment {
 
         // Nested for loops to initialize all of our TextViews for our most recent workout days
         for (int i = 0; i < MAX_RECENT_WORKOUT_DAYS; i++) {
-            final int i_copy = i; // I needed to create this variable because I can't use 'i' in the CardView onClickListener since it must be final
+            final int i_copy = i; // Needed to create this variable because can't use 'i' in the CardView onClickListener since 'i' must be final
             RecentWorkoutViews recentWorkoutView = new RecentWorkoutViews();
 
             // Get a reference to the CardView that holds all the below TextViews
@@ -146,7 +146,7 @@ public class RecentWorkoutsFragment extends Fragment {
 
         /* Background AsynTask that calls createRoutineObject(mRoutineId) on the background thread and assigns
            the returned Routine to mActiveRoutine, then calls updateUI() */
-        new CreateRoutineTask(mActiveRoutineId).execute();
+        //new CreateRoutineTask(mActiveRoutineId).execute();
 
         return v;
     }
@@ -162,6 +162,13 @@ public class RecentWorkoutsFragment extends Fragment {
 
         // Setup our custom toolbar and Spinner
         init_toolbar(getActivity());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.i (TAG, "onResume() called");
+        new CreateRoutineTask(mActiveRoutineId).execute();
     }
 
     // Creates a full Routine object if all the required data exists

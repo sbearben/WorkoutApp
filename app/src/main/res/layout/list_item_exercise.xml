@@ -43,10 +43,6 @@
             <com.bignerdranch.android.workoutapp.SquareButton
                 android:id="@+id/routineday_page_set1_button"
                 style="@style/ExerciseSetButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:textColor="@color/white"
                 tools:text="5" />
 
             <TextView
@@ -88,9 +84,6 @@
             <com.bignerdranch.android.workoutapp.SquareButton
                 android:id="@+id/routineday_page_set2_button"
                 style="@style/ExerciseSetButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
                 tools:text="5" />
 
             <TextView
@@ -132,9 +125,6 @@
             <com.bignerdranch.android.workoutapp.SquareButton
                 android:id="@+id/routineday_page_set3_button"
                 style="@style/ExerciseSetButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
                 tools:text="5" />
 
             <TextView
@@ -176,9 +166,6 @@
             <com.bignerdranch.android.workoutapp.SquareButton
                 android:id="@+id/routineday_page_set4_button"
                 style="@style/ExerciseSetButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
                 tools:text="5" />
 
             <TextView
@@ -220,9 +207,6 @@
             <com.bignerdranch.android.workoutapp.SquareButton
                 android:id="@+id/routineday_page_set5_button"
                 style="@style/ExerciseSetButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
                 tools:text="5" />
 
             <TextView
