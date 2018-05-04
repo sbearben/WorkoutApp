@@ -1,12 +1,9 @@
-package com.bignerdranch.android.workoutapp;
+package com.bignerdranch.android.workoutapp.database;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.persistence.db.SupportSQLiteDatabase;
-import android.arch.persistence.db.SupportSQLiteOpenHelper;
 import android.arch.persistence.room.Database;
-import android.arch.persistence.room.DatabaseConfiguration;
-import android.arch.persistence.room.InvalidationTracker;
 import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.arch.persistence.room.TypeConverters;
@@ -15,7 +12,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
-import com.bignerdranch.android.workoutapp.database.DataGenerator;
 import com.bignerdranch.android.workoutapp.database.converter.BooleanConverter;
 import com.bignerdranch.android.workoutapp.database.converter.DateConverter;
 import com.bignerdranch.android.workoutapp.database.dao.ExerciseDao;

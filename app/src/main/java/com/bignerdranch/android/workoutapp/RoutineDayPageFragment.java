@@ -12,7 +12,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,15 +41,15 @@ public class RoutineDayPageFragment extends Fragment {
 
     private DataRepository mDataRepository;
 
-    private int mRoutineDayId;
-    private RoutineDay mRoutineDay;
+    private RecyclerView mExerciseRecyclerView;
+    private ExerciseAdapter mAdapter;
 
     private Set mExerciseSet; // Need this because at one point we need to update a set across methods (see onActivityResult(..))
     private SquareButton mActualMeasurementButton; // Need this because at one point we need to update a button across methods (see onActivityResult(..))
     private TextView mTargetWeightTextView; // Need this because at one point we need to update a set's weight textview across methods (see onActivityResult(..))
 
-    private RecyclerView mExerciseRecyclerView;
-    private ExerciseAdapter mAdapter;
+    private int mRoutineDayId;
+    private RoutineDay mRoutineDay;
 
 
     public static RoutineDayPageFragment newInstance(int routineDayId) {
@@ -89,11 +88,10 @@ public class RoutineDayPageFragment extends Fragment {
 
     /* We want to write the RoutineDay back to the Db when onPause() is called. The tutorial located in the following link suggests
        this is the best place to do that: https://www.tutorialspoint.com/android/android_fragments.htm
-       - and frankly calling it here was the only way that worked proparly for my needs of the previous fragment getting the updated data */
+       - and frankly calling it here was the only way that worked properly for my needs of the previous fragment getting the updated data */
     @Override
     public void onPause() {
         super.onPause();
-        Log.i(TAG, "onPause() called");
         new WriteRoutineDayTask(mRoutineDay).execute();
     }
 
@@ -175,7 +173,35 @@ public class RoutineDayPageFragment extends Fragment {
         }
     }
 
-    // Define the ViewHolder that will inflate and own the list_item_crime.xml layout. Define it as an inner class in CrimeListFragment
+    // For getting the results back from the Picker Dialogs
+    @Override
+    public void onActivityResult (int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+
+        if (requestCode == REQUEST_REPS_NUMBER) {
+            ReppedSet reppedSet = (ReppedSet) mExerciseSet;
+            int result = (int) data.getSerializableExtra(NumberPickerFragment.EXTRA_NUMBER);
+            reppedSet.setTargetMeasurement(result);
+
+            // Check if the new target number of reps is less than the actual amount we have set; if so we have to update actual reps = target reps
+            if (result < reppedSet.getActualMeasurement()) {
+                reppedSet.setActualMeasurement(result);
+                mActualMeasurementButton.setText(reppedSet.actualMeasurementString());
+            }
+        }
+        else if (requestCode == REQUEST_WEIGHT_NUMBER) {
+            int result = (int) data.getSerializableExtra(NumberPickerFragment.EXTRA_NUMBER);
+            mExerciseSet.setTargetWeight(result);
+
+            String weightString = mExerciseSet.getTargetWeight() + "lbs"; // Using this variable since performing string concat in setText() makes Android Studio whine
+            mTargetWeightTextView.setText(weightString); // TODO: Remove hardcoded lbs and make flexible for both lbs and kg
+
+        }
+    }
+
+    // Define the ViewHolder that will inflate and own the list_item_exercise.xml layout
     private class ExerciseHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private ExerciseViews mExerciseViews;
@@ -205,7 +231,7 @@ public class RoutineDayPageFragment extends Fragment {
             }
         }
 
-        // This bind(Crime) method will be called each time a new Crime should be displayed in our CrimeHolder.
+        // This bind(Exercise) method will be called each time a new Exercise should be displayed in our ExerciseHolder.
         public void bind (@NonNull Exercise exercise) {
             mExercise = exercise;
             mExerciseViews.mExerciseNameTextView.setText(mExercise.getName());
@@ -293,34 +319,6 @@ public class RoutineDayPageFragment extends Fragment {
         }
     }
 
-    // For getting the results back from the Picker Dialogs
-    @Override
-    public void onActivityResult (int requestCode, int resultCode, Intent data) {
-        if (resultCode != Activity.RESULT_OK) {
-            return;
-        }
-
-        if (requestCode == REQUEST_REPS_NUMBER) {
-            ReppedSet reppedSet = (ReppedSet) mExerciseSet;
-            int result = (int) data.getSerializableExtra(NumberPickerFragment.EXTRA_NUMBER);
-            reppedSet.setTargetMeasurement(result);
-
-            // Check if the new target number of reps is less than the actual amount we have set; if so we have to update actual reps = target reps
-            if (result < reppedSet.getActualMeasurement()) {
-                reppedSet.setActualMeasurement(result);
-                mActualMeasurementButton.setText(reppedSet.actualMeasurementString());
-            }
-        }
-        else if (requestCode == REQUEST_WEIGHT_NUMBER) {
-            int result = (int) data.getSerializableExtra(NumberPickerFragment.EXTRA_NUMBER);
-            mExerciseSet.setTargetWeight(result);
-
-            String weightString = mExerciseSet.getTargetWeight() + "lbs"; // Using this variable since performing string concat in setText() makes Android Studio whine
-            mTargetWeightTextView.setText(weightString); // TODO: Remove hardcoded lbs and make flexible for both lbs and kg
-
-        }
-    }
-
     private class ExerciseAdapter extends RecyclerView.Adapter<ExerciseHolder> {
 
         private List<Exercise> mExercises;
@@ -337,7 +335,7 @@ public class RoutineDayPageFragment extends Fragment {
             return new ExerciseHolder (layoutInflater, parent);
         }
 
-        // This method calls bind(Crime) each time the RecyclerView requests that a given CrimeHolder be bound to a particular crime
+        // This method calls bind(Exercise) each time the RecyclerView requests that a given ExerciseHolder be bound to a particular exercise
         // - in order to keep the scrolling animation smooth, keep this method small and efficient doing only the min amount of necessary work here
         @Override
         public void onBindViewHolder (@NonNull ExerciseHolder holder, int position) {
@@ -442,7 +440,7 @@ public class RoutineDayPageFragment extends Fragment {
         }
     }
 
-    // Create a background thread to perform the queries to create the RoutineDay object
+    // Create a background thread to perform the queries to write the RoutineDay object to our Db
     private class WriteRoutineDayTask extends AsyncTask<Void, Void, Void> {
 
         private RoutineDay mRoutineDay;

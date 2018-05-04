@@ -9,9 +9,9 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
-public class RecentWorkoutsActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "RecentWorkoutsActivity";
+    private static final String TAG = "MainActivity";
 
     private BottomNavigationView mBottomNavView;
 
@@ -35,6 +35,8 @@ public class RecentWorkoutsActivity extends AppCompatActivity {
                     selectedFragment = RecentWorkoutsFragment.newInstance();
                     break;
                 case R.id.action_routines:
+                    fragmentTag = "action_routines";
+                    selectedFragment = RoutineListFragment.newInstance();
                     break;
                 case R.id.action_history:
                     break;

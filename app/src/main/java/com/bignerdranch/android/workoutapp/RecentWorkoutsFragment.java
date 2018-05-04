@@ -1,12 +1,10 @@
 package com.bignerdranch.android.workoutapp;
 
 import android.app.Application;
-import android.arch.lifecycle.LiveData;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -15,7 +13,6 @@ import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -23,7 +20,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.bignerdranch.android.workoutapp.database.dao.RoutineDao;
 import com.bignerdranch.android.workoutapp.global.BasicApp;
 import com.bignerdranch.android.workoutapp.global.DataRepository;
 import com.bignerdranch.android.workoutapp.model.Exercise;
@@ -36,7 +32,6 @@ import com.bignerdranch.android.workoutapp.model.TimedSet;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -144,10 +139,6 @@ public class RecentWorkoutsFragment extends Fragment {
             // Add and go to new RoutineDay
         });
 
-        /* Background AsynTask that calls createRoutineObject(mRoutineId) on the background thread and assigns
-           the returned Routine to mActiveRoutine, then calls updateUI() */
-        //new CreateRoutineTask(mActiveRoutineId).execute();
-
         return v;
     }
 
@@ -167,7 +158,8 @@ public class RecentWorkoutsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        Log.i (TAG, "onResume() called");
+        /* Background AsynTask that calls createRoutineObject(mRoutineId) on the background thread and assigns
+           the returned Routine to mActiveRoutine, then calls updateUI() */
         new CreateRoutineTask(mActiveRoutineId).execute();
     }
 

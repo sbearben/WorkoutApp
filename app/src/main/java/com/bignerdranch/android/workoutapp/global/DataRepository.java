@@ -1,14 +1,10 @@
 package com.bignerdranch.android.workoutapp.global;
 
-import android.arch.lifecycle.LiveData;
-import android.util.Log;
-
-import com.bignerdranch.android.workoutapp.AppDatabase;
+import com.bignerdranch.android.workoutapp.database.AppDatabase;
 import com.bignerdranch.android.workoutapp.model.Exercise;
 import com.bignerdranch.android.workoutapp.model.ReppedSet;
 import com.bignerdranch.android.workoutapp.model.Routine;
 import com.bignerdranch.android.workoutapp.model.RoutineDay;
-import com.bignerdranch.android.workoutapp.model.Set;
 import com.bignerdranch.android.workoutapp.model.TimedSet;
 
 import java.util.List;

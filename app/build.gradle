@@ -9,6 +9,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
 
         // The following code (including the sourceSets label), has to do with testing Room's schemas against current and older version of our database
         // - code was found at: https://developer.android.com/training/data-storage/room/migrating-db-versions.html

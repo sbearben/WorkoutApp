@@ -15,4 +15,6 @@
     <string name="empty_routines_text">You have not created any routines</string>
     <string name="add_routine_button">Create first routine</string>
 
+    <string name="right_chevron_description">Right chevron</string>
+
 </resources>

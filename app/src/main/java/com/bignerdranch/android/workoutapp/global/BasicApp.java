@@ -18,7 +18,7 @@ package com.bignerdranch.android.workoutapp.global;
 
 import android.app.Application;
 
-import com.bignerdranch.android.workoutapp.AppDatabase;
+import com.bignerdranch.android.workoutapp.database.AppDatabase;
 
 /**
  * Android Application class. Used for accessing singletons.

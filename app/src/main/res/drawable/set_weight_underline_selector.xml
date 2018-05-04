@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@drawable/set_weight_underline_inactive"
+    <item android:drawable="@color/lightMediumGray"
         android:state_enabled="false"/>
 
-    <item android:drawable="@drawable/set_weight_underline_active" />
+    <item android:drawable="@color/colorPrimaryDark" />
 </selector>

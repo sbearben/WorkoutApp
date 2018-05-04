@@ -47,23 +47,12 @@
 
             <TextView
                 android:id="@+id/routineday_page_set1_weight_textview"
-                style="@style/TextAppearance.AppCompat.Widget.Button.Borderless.Colored"
-                android:textAllCaps="false"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@drawable/set_weight_text_selector"
-                android:background="?android:attr/selectableItemBackground"
-                android:textSize="16sp"
-                tools:text="260lbs"
-                android:textAlignment="center"
-                android:clickable="true"
-                android:focusable="true"/>
+                style="@style/ExerciseSetWeightTextView"
+                tools:text="260lbs"/>
 
             <View
                 android:id="@+id/routineday_page_set1_weight_underline"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@drawable/set_weight_underline_selector"/>
+                style="@style/ExerciseSetWeightUnderline"/>
 
         </LinearLayout>
 
@@ -88,23 +77,12 @@
 
             <TextView
                 android:id="@+id/routineday_page_set2_weight_textview"
-                style="@style/TextAppearance.AppCompat.Widget.Button.Borderless.Colored"
-                android:textAllCaps="false"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@drawable/set_weight_text_selector"
-                android:background="?android:attr/selectableItemBackground"
-                android:textSize="16sp"
-                tools:text="260lbs"
-                android:textAlignment="center"
-                android:clickable="true"
-                android:focusable="true"/>
+                style="@style/ExerciseSetWeightTextView"
+                tools:text="260lbs"/>
 
             <View
                 android:id="@+id/routineday_page_set2_weight_underline"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@drawable/set_weight_underline_selector"/>
+                style="@style/ExerciseSetWeightUnderline"/>
 
         </LinearLayout>
 
@@ -129,23 +107,12 @@
 
             <TextView
                 android:id="@+id/routineday_page_set3_weight_textview"
-                style="@style/TextAppearance.AppCompat.Widget.Button.Borderless.Colored"
-                android:textAllCaps="false"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@drawable/set_weight_text_selector"
-                android:background="?android:attr/selectableItemBackground"
-                android:textSize="16sp"
-                tools:text="260lbs"
-                android:textAlignment="center"
-                android:clickable="true"
-                android:focusable="true"/>
+                style="@style/ExerciseSetWeightTextView"
+                tools:text="260lbs"/>
 
             <View
                 android:id="@+id/routineday_page_set3_weight_underline"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@drawable/set_weight_underline_selector"/>
+                style="@style/ExerciseSetWeightUnderline"/>
 
         </LinearLayout>
 
@@ -170,23 +137,12 @@
 
             <TextView
                 android:id="@+id/routineday_page_set4_weight_textview"
-                style="@style/TextAppearance.AppCompat.Widget.Button.Borderless.Colored"
-                android:textAllCaps="false"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@drawable/set_weight_text_selector"
-                android:background="?android:attr/selectableItemBackground"
-                android:textSize="16sp"
-                tools:text="260lbs"
-                android:textAlignment="center"
-                android:clickable="true"
-                android:focusable="true"/>
+                style="@style/ExerciseSetWeightTextView"
+                tools:text="260lbs"/>
 
             <View
                 android:id="@+id/routineday_page_set4_weight_underline"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@drawable/set_weight_underline_selector"/>
+                style="@style/ExerciseSetWeightUnderline"/>
 
         </LinearLayout>
 
@@ -211,23 +167,12 @@
 
             <TextView
                 android:id="@+id/routineday_page_set5_weight_textview"
-                style="@style/TextAppearance.AppCompat.Widget.Button.Borderless.Colored"
-                android:textAllCaps="false"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@drawable/set_weight_text_selector"
-                android:background="?android:attr/selectableItemBackground"
-                android:textSize="16sp"
-                tools:text="260lbs"
-                android:textAlignment="center"
-                android:clickable="true"
-                android:focusable="true"/>
+                style="@style/ExerciseSetWeightTextView"
+                tools:text="260lbs"/>
 
             <View
                 android:id="@+id/routineday_page_set5_weight_underline"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@drawable/set_weight_underline_selector"/>
+                style="@style/ExerciseSetWeightUnderline"/>
 
         </LinearLayout>
     </android.support.constraint.ConstraintLayout>

@@ -12,7 +12,7 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".RecentWorkoutsActivity">
+            android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -22,7 +22,7 @@
 
         <activity
             android:name=".RoutineDayPageActivity"
-            android:parentActivityName=".RecentWorkoutsActivity">
+            android:parentActivityName=".MainActivity">
         </activity>
     </application>
 
