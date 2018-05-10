@@ -24,6 +24,12 @@
             android:name=".RoutineDayPageActivity"
             android:parentActivityName=".MainActivity">
         </activity>
+
+        <activity
+            android:name=".EditRoutineActivity"
+            android:parentActivityName=".MainActivity">
+        </activity>
+
     </application>
 
 </manifest>

@@ -2,6 +2,7 @@ package com.bignerdranch.android.workoutapp.database.dao;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
+import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
@@ -28,4 +29,10 @@ public interface ReppedSetDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertReppedSet(ReppedSet reppedSet);
+
+    @Delete
+    public void deleteReppedSet (ReppedSet reppedSet);
+
+    @Delete
+    public void deleteReppedSets (ReppedSet... reppedSets);
 }

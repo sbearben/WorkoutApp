@@ -84,7 +84,21 @@ public class DataGenerator {
             int numDaysInRoutine = routine_days[routines.indexOf(routine)].length;
             int currentDayNumber = 1;
 
-            for (int i = 0; i < 20; i++) {
+            int total = 0; // Using this to keep track of the IDs for the first "template" routineDays for the routines
+            for (int i=0; i<numDaysInRoutine; i++) {
+                RoutineDay routineDay = new RoutineDay();
+
+                routineDay.setId(1000 + total);
+                routineDay.setRoutineId(routine.getId());
+                routineDay.setDayNumber(i+1);
+                routineDay.setDate(null);
+                routineDay.setCompleted(false);
+                routineDay.setTemplate(true);
+
+                total++;
+            }
+
+            for (int i = total; i < (20+total); i++) {
                 RoutineDay routineDay = new RoutineDay();
 
                 routineDay.setId(1000 + 20*routines.indexOf(routine) + i);
@@ -92,6 +106,7 @@ public class DataGenerator {
                 routineDay.setDayNumber(currentDayNumber);
                 routineDay.setDate(new GregorianCalendar(2018, routines.indexOf(routine)+1, i+1).getTime());
                 routineDay.setCompleted(true);
+                routineDay.setTemplate(false);
 
                 routineDays.add(routineDay);
                 currentDayNumber = ((i+1)%numDaysInRoutine) + 1;
@@ -161,6 +176,7 @@ public class DataGenerator {
                 // indicates that the set was skipped - therefore we want to include it as a possible generate random value for actualMeasurement
                 // - so this code will set reppedSet.actualMeasurement to a value between -1 and reppedSet.targetMeasurement
                 reppedSet.setActualMeasurement(rnd.nextInt(reppedSet.getTargetMeasurement()+2)-1);
+                // NOTE: normally here for the TEMPLATE RoutineDays we'd set the actualMeasurement to NULL -> I'm too lazy to implement that ugly logic here
 
                 reppedSets.add(reppedSet);
                 reppedSetId++;

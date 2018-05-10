@@ -76,6 +76,10 @@ public class DataRepository {
         return mDatabase.routineDayDao().getMostRecentDaysInRoutine(routineId, numberDays);
     }
 
+    public List<RoutineDay> loadTemplateRoutineDays() {
+        return mDatabase.routineDayDao().getTemplateRoutineDays();
+    }
+
     public void insertRoutineDays (final List<RoutineDay> routineDays) {
         mDatabase.routineDayDao().insertAllRoutineDays(routineDays);
     }
@@ -107,8 +111,16 @@ public class DataRepository {
         mDatabase.exerciseDao().insertAllExercises(exercises);
     }
 
-    public void insertExercise (final Exercise exercise) {
-        mDatabase.exerciseDao().insertExercise(exercise);
+    public long insertExercise (final Exercise exercise) {
+        return mDatabase.exerciseDao().insertExercise(exercise);
+    }
+
+    public void deleteExercise (final Exercise exercise) {
+        mDatabase.exerciseDao().deleteExercise(exercise);
+    }
+
+    public void deleteExercises (final Exercise... exercises) {
+        mDatabase.exerciseDao().deleteExercises(exercises);
     }
 
     /**
@@ -134,6 +146,14 @@ public class DataRepository {
         mDatabase.reppedSetDao().insertReppedSet(reppedSet);
     }
 
+    public void deleteReppedSet (final ReppedSet reppedSet) {
+        mDatabase.reppedSetDao().deleteReppedSet(reppedSet);
+    }
+
+    public void deleteReppedSets (final ReppedSet... reppedSets) {
+        mDatabase.reppedSetDao().deleteReppedSets(reppedSets);
+    }
+
     /**
      * TimedSet queries
      */
@@ -155,6 +175,14 @@ public class DataRepository {
 
     public void insertTimedSet (final TimedSet timedSet) {
         mDatabase.timedSetDao().insertTimedSet(timedSet);
+    }
+
+    public void deleteTimedSet (final TimedSet timedSet) {
+        mDatabase.timedSetDao().deleteTimedSet(timedSet);
+    }
+
+    public void deleteTimedSets (final TimedSet... timedSets) {
+        mDatabase.timedSetDao().deleteTimedSets(timedSets);
     }
 
 }

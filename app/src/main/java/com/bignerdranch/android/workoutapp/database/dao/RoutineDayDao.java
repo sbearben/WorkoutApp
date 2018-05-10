@@ -35,6 +35,13 @@ public interface RoutineDayDao {
             "LIMIT :numberDays")
     List<RoutineDay> getMostRecentDaysInRoutine(int routineId, int numberDays);
 
+    // 1 means TRUE
+    @Query("SELECT * " +
+            "FROM routine_days " +
+            "WHERE routine_day_template = 1 " +
+            "ORDER BY routine_day_number")
+    List<RoutineDay> getTemplateRoutineDays();
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAllRoutineDays(List<RoutineDay> routineDays);
 

@@ -11,8 +11,12 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -26,25 +30,38 @@ import com.bignerdranch.android.workoutapp.model.Set;
 import com.bignerdranch.android.workoutapp.model.TimedSet;
 
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class RoutineDayPageFragment extends Fragment {
 
     private static final String TAG = "RoutineDayPageFragment";
     private static final String ARG_ROUTINEDAY_ID = "routineday_id";
+    private static final String ARG_IS_TEMPLATE = "is_template";
+
+    private static final String DIALOG_SETS_NUMBER = "DialogSetsNumber";
+    private static final int REQUEST_SETS_NUMBER = 0;
 
     private static final String DIALOG_REPS_NUMBER = "DialogRepsNumber";
-    private static final int REQUEST_REPS_NUMBER = 0;
+    private static final int REQUEST_REPS_NUMBER = 1;
 
     private static final String DIALOG_WEIGHT_NUMBER = "DialogWeightNumber";
-    private static final int REQUEST_WEIGHT_NUMBER = 1;
+    private static final int REQUEST_WEIGHT_NUMBER = 2;
+
+    private static final String DIALOG_NEW_EXERCISE = "DialogNewExercise";
+    private static final int REQUEST_NEW_EXERCISE = 3;
 
     private DataRepository mDataRepository;
 
     private RecyclerView mExerciseRecyclerView;
     private ExerciseAdapter mAdapter;
+    private ItemTouchHelper mSwipeDismiss; // For swiping on an exercise to delete it
 
-    private Set mExerciseSet; // Need this because at one point we need to update a set across methods (see onActivityResult(..))
+    private Exercise mCurrentExercise; // Need this because at one point we need to update an exercise across methods (see onActivityResult(..))
+    private Set mCurrentExerciseSet; // Need this because at one point we need to update a set across methods (see onActivityResult(..))
+    private ExerciseViews mCurrentExerciseViews;
+
+    private TextView mExerciseSetsTextView;
     private SquareButton mActualMeasurementButton; // Need this because at one point we need to update a button across methods (see onActivityResult(..))
     private TextView mTargetWeightTextView; // Need this because at one point we need to update a set's weight textview across methods (see onActivityResult(..))
 
@@ -64,6 +81,7 @@ public class RoutineDayPageFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true); // let the FragmentManager know that this fragment needs to receive menu callbacks
 
         mRoutineDayId = (int) getArguments().getSerializable(ARG_ROUTINEDAY_ID);
 
@@ -93,6 +111,28 @@ public class RoutineDayPageFragment extends Fragment {
     public void onPause() {
         super.onPause();
         new WriteRoutineDayTask(mRoutineDay).execute();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_routineday_page, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.new_exercise:
+                FragmentManager manager = getFragmentManager();
+                NewExerciseFragment dialog = NewExerciseFragment.newInstance();
+
+                // we use setTargetFragment to later get the new exercise data from the NewExerciseFragment (similar to startActivityForResult(..) used by Activities)
+                dialog.setTargetFragment (RoutineDayPageFragment.this, REQUEST_NEW_EXERCISE);
+                dialog.show (manager, DIALOG_NEW_EXERCISE);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     // Creates a full RoutineDay object if all the required data exists
@@ -166,6 +206,33 @@ public class RoutineDayPageFragment extends Fragment {
         if (mAdapter == null) {
             mAdapter = new ExerciseAdapter(exercises);
             mExerciseRecyclerView.setAdapter(mAdapter);
+
+            mSwipeDismiss = new ItemTouchHelper (new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                    return false;
+                }
+
+                public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                    if (direction == ItemTouchHelper.RIGHT) {
+                        List<Exercise> exercises = mAdapter.mExercises;
+                        int exerciseNum = viewHolder.getAdapterPosition();
+                        Exercise exercise = exercises.get(exerciseNum);
+
+                        // Update the exercise number field for our remaining exercises
+                        for (int i=exercise.getNumber(); i<exercises.size(); i++) {
+                            exercises.get(i).setNumber(i);
+                        }
+
+                        // Delete the exercise from our DB
+                        new Thread(() -> { mDataRepository.deleteExercise(exercise); }).start(); // Background thread to delete swiped on Exercise
+                        exercises.remove(exercise); // Remove the exercise from our local RoutineDay object's list of exercises
+
+                        updateUI();
+                    }
+                }
+            });
+
+            mSwipeDismiss.attachToRecyclerView(mExerciseRecyclerView);
         }
         else {
             mAdapter.setExercises(exercises);
@@ -181,7 +248,7 @@ public class RoutineDayPageFragment extends Fragment {
         }
 
         if (requestCode == REQUEST_REPS_NUMBER) {
-            ReppedSet reppedSet = (ReppedSet) mExerciseSet;
+            ReppedSet reppedSet = (ReppedSet) mCurrentExerciseSet;
             int result = (int) data.getSerializableExtra(NumberPickerFragment.EXTRA_NUMBER);
             reppedSet.setTargetMeasurement(result);
 
@@ -193,11 +260,92 @@ public class RoutineDayPageFragment extends Fragment {
         }
         else if (requestCode == REQUEST_WEIGHT_NUMBER) {
             int result = (int) data.getSerializableExtra(NumberPickerFragment.EXTRA_NUMBER);
-            mExerciseSet.setTargetWeight(result);
+            mCurrentExerciseSet.setTargetWeight(result);
 
-            String weightString = mExerciseSet.getTargetWeight() + "lbs"; // Using this variable since performing string concat in setText() makes Android Studio whine
+            String weightString = mCurrentExerciseSet.getTargetWeight() + "lbs"; // Using this variable since performing string concat in setText() makes Android Studio whine
             mTargetWeightTextView.setText(weightString); // TODO: Remove hardcoded lbs and make flexible for both lbs and kg
+        }
+        else if (requestCode == REQUEST_SETS_NUMBER) {
+            int result = (int) data.getSerializableExtra(NumberPickerFragment.EXTRA_NUMBER);
+            int diff = result - mCurrentExercise.getTargetNumberSets();
 
+            String setsStr = "Sets: " + result; // TODO: Need to create string resource for this
+            mCurrentExerciseViews.mExerciseSetsTextView.setText(setsStr);
+
+            if (diff < 0) {
+                deleteSets (mDataRepository, mCurrentExerciseViews, mCurrentExercise, mCurrentExercise.getTargetNumberSets()+diff, mCurrentExercise.getTargetNumberSets());
+            }
+            else if (diff > 0) {
+                insertSets (mDataRepository, mCurrentExerciseViews, mCurrentExercise, mCurrentExercise.getTargetNumberSets(), mCurrentExercise.getTargetNumberSets()+diff);
+            }
+        }
+        else if (requestCode == REQUEST_NEW_EXERCISE) {
+            String exerciseName = (String) data.getSerializableExtra(NewExerciseFragment.EXTRA_EXERCISE_NAME);
+            int numberSets = (int) data.getSerializableExtra(NewExerciseFragment.EXTRA_EXERCISE_SETS);
+            String exerciseType = (String) data.getSerializableExtra(NewExerciseFragment.EXTRA_EXERCISE_TYPE);
+
+            Exercise exercise = new Exercise();
+            exercise.setRoutineDayId(mRoutineDayId);
+            exercise.setNumber(mRoutineDay.getExercises().size()+1);
+            exercise.setName(exerciseName);
+            exercise.setTargetNumberSets(numberSets);
+
+            // Make sure the exercise type is valid, if not we default to Repped exercise type
+            if (Exercise.isValidExerciseType(exerciseType))
+                exercise.setType(exerciseType);
+            else
+                exercise.setType(Exercise.REPPED);
+
+            // Use an Async to insert our new Exercise, which will return its ID, the use that ID when we create its Sets in postExecute()
+            new WriteNewExerciseTask(exercise).execute();
+
+
+        }
+
+        updateUI();
+    }
+
+    private void deleteSets (DataRepository dataRepository,  ExerciseViews exerciseViews, Exercise exercise, int start, int end) {
+        exercise.setTargetNumberSets(start);
+
+        for (int i=start; i<end; i++) {
+            Set exerciseSet = exercise.getSets().get(start); // We need to use "start" as the index since we are removing sets from the list at the end of this loop (if we use 'i' we get out of bounds error)
+            exerciseViews.mSetViews.get(i).redrawDisabledViews(); // Set all the UI elements of that set to their disabled views
+
+            if (exercise.getType().equals(Exercise.REPPED)) { // TODO: I don't love this code
+                ReppedSet reppedSet = (ReppedSet) exerciseSet;
+                new Thread(() -> { dataRepository.deleteReppedSet(reppedSet); }).start(); // Background thread to delete the set from the DB (we need to do this here to make sure it gets deleted)
+            }
+            else {
+                TimedSet timedSet = (TimedSet) exerciseSet;
+                new Thread(() -> { dataRepository.deleteTimedSet(timedSet); }).start(); // Background thread to delete the set from the DB (we need to do this here to make sure it gets deleted)
+            }
+            exercise.getSets().remove(exerciseSet);
+        }
+    }
+
+    private void insertSets (DataRepository dataRepository,  ExerciseViews exerciseViews, Exercise exercise, int start, int end) {
+        exercise.setTargetNumberSets(end); // Set out new number of sets on our Exercise object
+        Set lastSet = exercise.getSets().get(start-1); // Get the last set in our current version of the Exercise object so we can base the new sets on the old one
+
+        for (int i=start; i<end; i++) {
+            if (exercise.getType().equals(Exercise.REPPED)) { // TODO: I don't love this code
+                ReppedSet lastReppedSet = (ReppedSet) lastSet;
+                ReppedSet reppedSet = new ReppedSet (exercise.getId(), i+1, lastReppedSet.getTargetWeight(), lastReppedSet.getTargetMeasurement(), ReppedSet.ACTUAL_REPS_NULL);
+
+                //new Thread(() -> { dataRepository.insertReppedSet(reppedSet); }).start(); // Not sure if I need to do this here (since writing to Db when we back out)
+                exercise.getSets().add ((Set) reppedSet);
+                exerciseViews.mSetViews.get(i).redrawEnabledViews((Set) reppedSet); // Set all the UI elements of that set to their enabled views
+            }
+            else {
+                TimedSet timedSet = new TimedSet (exercise.getId(), i+1, 0,
+                        new GregorianCalendar(0, 0, 0, 0, 0, 30).getTime(),
+                        null); // TODO: need to add equivalent to ACTUAL_REPS_NULL to TimedSet
+
+                //new Thread(() -> { dataRepository.insertTimedSet(timedSet); }).start(); // Not sure if I need to do this here (since writing to Db when we back out)
+                exercise.getSets().add ((Set) timedSet);
+                exerciseViews.mSetViews.get(i).redrawEnabledViews((Set) timedSet); // Set all the UI elements of that set to their enabled views
+            }
         }
     }
 
@@ -207,7 +355,6 @@ public class RoutineDayPageFragment extends Fragment {
         private ExerciseViews mExerciseViews;
         private Exercise mExercise;
 
-
         public ExerciseHolder (LayoutInflater inflater, ViewGroup parent) {
             super (inflater.inflate (R.layout.list_item_exercise, parent, false));
             //itemView.setOnClickListener (this);
@@ -216,6 +363,9 @@ public class RoutineDayPageFragment extends Fragment {
 
             int resId = mExerciseViews.resIdGenerator("exercise_name_textview");
             mExerciseViews.mExerciseNameTextView = (TextView) itemView.findViewById(resId);
+
+            resId = mExerciseViews.resIdGenerator("exercise_sets_button");
+            mExerciseViews.mExerciseSetsTextView = (TextView) itemView.findViewById(resId);
 
             for (int i=0; i < Exercise.MAX_SETS; i++) {
                 ExerciseViews.SetViews setViews = mExerciseViews.mSetViews.get(i);
@@ -233,11 +383,29 @@ public class RoutineDayPageFragment extends Fragment {
 
         // This bind(Exercise) method will be called each time a new Exercise should be displayed in our ExerciseHolder.
         public void bind (@NonNull Exercise exercise) {
-            mExercise = exercise;
+            mExercise = exercise; // this is our local ExerciseHolder variable that we use throughout the rest of this method (THIS IS IMPORTANT AND REQUIRED)
+
             mExerciseViews.mExerciseNameTextView.setText(mExercise.getName());
+            String setsStr = "Sets: " + mExercise.getTargetNumberSets(); // TODO: need to create string resource for this
+            mExerciseViews.mExerciseSetsTextView.setText(setsStr);
+
+            // Set up our click listener for the number of sets
+            mExerciseViews.mExerciseSetsTextView.setOnClickListener((View v) -> {
+                mExerciseSetsTextView = (TextView) v;
+                mCurrentExercise = exercise; // this is our RoutineDayPageFragment global exercise variable that we also need in onActivityResult(...)
+                mCurrentExerciseViews = mExerciseViews; // this is our RoutineDayPageFragment global ExerciseViews variable that we also need in onActivityResult(...)
+
+                FragmentManager manager = getFragmentManager();
+                NumberPickerFragment dialog = NumberPickerFragment.newInstance(mExercise.getTargetNumberSets(),
+                        1, 5, "", "Number of Sets:"); // TODO; shouldn't have hardcoded strings
+
+                // we use setTargetFragment to later get the new number from the NumberPickerFragment (similar to startActivityForResult(..) used by Activities)
+                dialog.setTargetFragment (RoutineDayPageFragment.this, REQUEST_SETS_NUMBER);
+                dialog.show (manager, DIALOG_SETS_NUMBER);
+            });
 
             for (int i=0; i < Exercise.MAX_SETS; i++) {
-                final int i_copy = i; // // Needed to create this variable because can't use 'i' in the onClickListeners since 'i' must be final
+                final int i_copy = i; // // Needed to create this variable because can'tS use 'i' in the onClickListeners since 'i' must be final
                 boolean setExists = mExercise.getSets().size() > i; // boolean to check if the set exists
                 ExerciseViews.SetViews setViews = mExerciseViews.mSetViews.get(i);
 
@@ -276,11 +444,11 @@ public class RoutineDayPageFragment extends Fragment {
                     mActualMeasurementButton = (SquareButton) v;
 
                     if (setExists) { // Not sure if I need these check since the button should be disabled at this point if the set doesn't exist
-                        mExerciseSet = mExercise.getSets().get(i_copy); // Need to use a global mExerciseSet because we need to update the set in another method (onActivityResult(..))
+                        mCurrentExerciseSet = mExercise.getSets().get(i_copy); // Need to use a global mCurrentExerciseSet because we need to update the set in another method (onActivityResult(..))
                         FragmentManager manager = getFragmentManager();
 
                         if (exercise.getType().equals(Exercise.REPPED)) { // TODO: need to add TimedSet implementation
-                            ReppedSet reppedSet = (ReppedSet) mExerciseSet;
+                            ReppedSet reppedSet = (ReppedSet) mCurrentExerciseSet;
 
                             NumberPickerFragment dialog = NumberPickerFragment.newInstance(reppedSet.getTargetMeasurement(),
                                     1, 100, "", "Target Reps:"); // TODO; shouldn't have hardcoded strings
@@ -299,10 +467,10 @@ public class RoutineDayPageFragment extends Fragment {
                     mTargetWeightTextView = (TextView) v;
 
                     if (setExists) { // Not sure if I need these check since the button should be disabled at this point if the set doesn't exist
-                        mExerciseSet = mExercise.getSets().get(i_copy); // Need to use a global mExerciseSet because we need to update the set in another method (onActivityResult(..))
+                        mCurrentExerciseSet = mExercise.getSets().get(i_copy); // Need to use a global mCurrentExerciseSet because we need to update the set in another method (onActivityResult(..))
                         FragmentManager manager = getFragmentManager();
 
-                        NumberPickerFragment dialog = NumberPickerFragment.newInstance(mExerciseSet.getTargetWeight(),
+                        NumberPickerFragment dialog = NumberPickerFragment.newInstance(mCurrentExerciseSet.getTargetWeight(),
                                 0, 9999, "lbs", "Target Weight:"); // TODO; Remove hardcoded lbs and make flexible for both lbs and kg
 
                         // we use setTargetFragment to later get the new number from the NumberPickerFragment (similar to startActivityForResult(..) used by Activities)
@@ -358,6 +526,7 @@ public class RoutineDayPageFragment extends Fragment {
         private static final String VIEW_ID_PREFIX = "routineday_page_";
 
         private TextView mExerciseNameTextView;
+        private TextView mExerciseSetsTextView;
         private List<SetViews> mSetViews;
 
 
@@ -457,6 +626,46 @@ public class RoutineDayPageFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Void result) {
+        }
+    }
+
+    /* This is used for putting a NEW exercise in our Db, since we need it's ID returned from the insert
+       statement so we can give it to the exercise's newly created Sets (called in postExecute())
+     */
+    private class WriteNewExerciseTask extends AsyncTask<Void, Void, Long> {
+
+        private Exercise mExercise;
+
+        public WriteNewExerciseTask (Exercise exercise) {
+            mExercise = exercise;
+        }
+
+        @Override
+        protected Long doInBackground (Void... params) {
+            return mDataRepository.insertExercise(mExercise);
+        }
+
+        @Override
+        protected void onPostExecute (Long exerciseId) {
+            // Here we are creating the Sets for the new exercise, using the ID that was just returned to us by the Db insert query
+            mExercise.setId(exerciseId.intValue());
+            if (mExercise.getType().equals(Exercise.REPPED)) {
+                for (int i=0; i<mExercise.getTargetNumberSets(); i++) {
+                    ReppedSet reppedSet = new ReppedSet (mExercise.getId(), i+1, 0, 8, ReppedSet.ACTUAL_REPS_NULL);
+                    mExercise.addSet((Set) reppedSet);
+                }
+            }
+            else {
+                for (int i=0; i<mExercise.getTargetNumberSets(); i++) {
+                    TimedSet timedSet = new TimedSet (mExercise.getId(), i+1, 0,
+                            new GregorianCalendar(0, 0, 0, 0, 0, 30).getTime(),
+                            null); // TODO: need to add equivalent to ACTUAL_REPS_NULL to TimedSet
+                    mExercise.addSet((Set) timedSet);
+                }
+            }
+
+            mRoutineDay.addExercise(mExercise);
+            updateUI();
         }
     }
 }

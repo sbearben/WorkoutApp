@@ -14,19 +14,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static android.arch.persistence.room.ForeignKey.CASCADE;
+import static android.arch.persistence.room.ForeignKey.RESTRICT;
+
 
 @Entity(tableName = ExerciseTable.NAME,
         foreignKeys = { @ForeignKey(
                 entity = RoutineDay.class,
                 parentColumns = RoutineDayTable.Cols.ROUTINE_DAY_ID,
-                childColumns = ExerciseTable.Cols.PARENT_ROUTINE_DAY_ID)},
+                childColumns = ExerciseTable.Cols.PARENT_ROUTINE_DAY_ID,
+                onDelete = CASCADE,
+                onUpdate = RESTRICT)},
         indices = { @Index(value = ExerciseTable.Cols.PARENT_ROUTINE_DAY_ID)}
         )
 public class Exercise {
 
-    public static final String REPPED = "repped";
-    public static final String TIMED = "timed";
+    public static final String REPPED = "Repped";
+    public static final String TIMED = "Timed";
+
     public static final int MAX_SETS = 5;
+    public static final int DEFAULT_SETS = 3;
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = ExerciseTable.Cols.EXERCISE_ID)
@@ -51,12 +58,9 @@ public class Exercise {
     private List<Set> sets = null;
 
 
-    /*public Exercise (String name, String type, int number) {
-        this(UUID.randomUUID(), name, type, number);
-    }*/
-
     @Ignore
     public Exercise() {
+        this.sets = new ArrayList<>();
     }
 
     public Exercise (int id, int routineDayId, String name, int number, int targetNumberSets, String type) {
@@ -84,13 +88,13 @@ public class Exercise {
         //initializeSets();
     }
 
-    private void initializeSets() {
+    /*private void initializeSets() {
         // Initialize our 5 sets
         this.sets = new ArrayList<>();
         for (int i=0; i<MAX_SETS; i++) {
             this.sets.add(Set.newInstance(id, this.type, i+1));
         }
-    }
+    }*/
 
 
     public int getId() {
@@ -187,9 +191,10 @@ public class Exercise {
         }
 
         return str;
+    }
 
-        /*return "Exercise: " + getId() + ", Name: " + getName() + "\n" +
-                "\t" + "Parent RoutineDay Id: " + getRoutineDayId() + ", Exercise#: " + getNumber() + "\n" +
-                "\t" + "Target # sets: " + getTargetNumberSets() + ", Type: " + getType() + "\n";*/
+    // Static method to make sure a given string is a valid exercise type (should maybe be keeping types in a final List?)
+    public static boolean isValidExerciseType(String type) {
+        return type.equals(Exercise.REPPED) || type.equals(Exercise.TIMED);
     }
 }

@@ -13,12 +13,17 @@ import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.SetTable;
 import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.TimedSetTable;
 import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.ExerciseTable;
 
+import static android.arch.persistence.room.ForeignKey.CASCADE;
+import static android.arch.persistence.room.ForeignKey.RESTRICT;
+
 
 @Entity(tableName = TimedSetTable.NAME,
         foreignKeys = { @ForeignKey(
                 entity = Exercise.class,
                 parentColumns = ExerciseTable.Cols.EXERCISE_ID,
-                childColumns = SetTable.Cols.PARENT_EXERCISE_ID)},
+                childColumns = SetTable.Cols.PARENT_EXERCISE_ID,
+                onDelete = CASCADE,
+                onUpdate = RESTRICT)},
         indices = { @Index(value = SetTable.Cols.PARENT_EXERCISE_ID)}
         )
 public class TimedSet extends Set<Date> {
@@ -27,8 +32,13 @@ public class TimedSet extends Set<Date> {
     public TimedSet() {
     }
 
+    @Ignore
     public TimedSet (int id, int exerciseId, int setNumber, int targetWeight, Date targetMeasurement, Date actualMeasurement) {
         super(id, exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
+    }
+
+    public TimedSet (int exerciseId, int setNumber, int targetWeight, Date targetMeasurement, Date actualMeasurement) {
+        super(exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
     }
 
     @Override
@@ -56,9 +66,11 @@ public class TimedSet extends Set<Date> {
         return minutes + ":" + seconds;
     }
 
+    /*
     @Ignore
     public TimedSet (int exerciseId, int setNumber) {
         super(exerciseId, setNumber, 0);
         this.targetMeasurement = new GregorianCalendar(0, 0, 0, 0, 0, 30).getTime();
     }
+    */
 }

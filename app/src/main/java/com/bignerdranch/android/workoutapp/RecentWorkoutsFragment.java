@@ -382,7 +382,7 @@ public class RecentWorkoutsFragment extends Fragment {
             return dayNames[dayOfWeek-1] + "\n" + day + " " + monthNames[month];
         }
 
-        // TODO: This function hardcodes the set weights in pounds - eventually need to add flexibility for switch between pounds and kg
+        // TODO: This function hardcodes the set weights in pounds - eventually need to add flexibility for switch between pounds and kg and also TimedSets
         private String createExerciseDetailsString (Exercise exercise) {
             List<Set> exerciseSets = exercise.getSets();
             String detailsString = "";
@@ -391,7 +391,8 @@ public class RecentWorkoutsFragment extends Fragment {
             if (exercise.getType().equals(Exercise.REPPED)) {
                 int maxTargetWeight = 0;
                 int previousSetTargetWeight = 0;
-                int maxTargetReps = 0;
+                //int maxTargetReps = 0;
+                int maxActualReps = 0;
                 int previousSetTargetReps = 0;
 
                 boolean allSetsSameTargetWeight = true; // flag to determine if all sets in exercise are at the same target weight
@@ -411,12 +412,12 @@ public class RecentWorkoutsFragment extends Fragment {
                         maxTargetWeight = setTargetWeight;
                     }
                     // If at any point, the current set targetWeight is not equal to the previous set targetWeight, then we know all sets are not the same target weight
-                    if (setTargetWeight != previousSetTargetWeight && exerciseSets.indexOf(reppedSet) > 0) {
+                    if (setTargetWeight != previousSetTargetWeight && exerciseSets.indexOf(reppedSet) > 0) { // The index check is because we don't want this performed on the first set since there isn't a previous one at that point
                         allSetsSameTargetWeight = false;
                     }
-                    // Logic to get the exercise's highest target reps set
-                    if (setTargetReps > maxTargetReps) {
-                        maxTargetReps = setTargetReps;
+                    // Logic to get the exercise's highest actual reps set
+                    if (setActualReps > maxActualReps) {
+                        maxActualReps = setActualReps;
                     }
                     if (setTargetReps != previousSetTargetReps && exerciseSets.indexOf(reppedSet) > 0) {
                         allSetsSameTargetReps = false;
@@ -443,7 +444,7 @@ public class RecentWorkoutsFragment extends Fragment {
                 detailsString += "  " + maxTargetWeight + "lb"; // TODO: change hardcode of lb (pounds) here
 
                 if ((allSetsSameTargetWeight && allSetsSameTargetReps && allSetsSuccessfullyCompleted) || (targetNumSets == 1 && skippedSetCount == 0)) {
-                    detailsString = targetNumSets + "x" + maxTargetReps + " " + maxTargetWeight + "lb";  // TODO: change hardcode of lb (pounds) here
+                    detailsString = targetNumSets + "x" + maxActualReps + " " + maxTargetWeight + "lbs";  // TODO: change hardcode of lbs (pounds) here
                 } else if (targetNumSets == skippedSetCount) {
                     detailsString = "Skipped";
                 }

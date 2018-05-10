@@ -17,4 +17,14 @@
 
     <string name="right_chevron_description">Right chevron</string>
 
+    <string name="add_exercise">Add Exercise</string>
+
+    <!-- NewExerciseFragment strings -->
+    <string name="new_exercise_title">Add Exercise:</string>
+    <string name="new_exercise_name_empty_error">Exercise name can\'t be empty</string>
+    <string name="new_exercise_sets_empty_error">Must be a positive integer between 1 and %1$d inclusive</string>
+    <string name="exercise_name_hint">Exercise Name</string>
+    <string name="exercise_number_sets_hint">Number of sets</string>
+    <string name="exercise_type_heading">Exercise Type</string>
+
 </resources>

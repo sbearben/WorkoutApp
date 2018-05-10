@@ -29,12 +29,12 @@ public abstract class Set<T> {
     private T actualMeasurement;
 
 
-    public static Set newInstance (int exerciseId, String type, int setNumber) {
+    public static Set newInstance(String type) {
         switch(type) {
             case Exercise.REPPED:
-                return new ReppedSet(exerciseId, setNumber);
+                return new ReppedSet();
             case Exercise.TIMED:
-                return new TimedSet(exerciseId, setNumber);
+                return new TimedSet();
             default:
                 return null;
         }
@@ -56,11 +56,12 @@ public abstract class Set<T> {
         this.actualMeasurement = actualMeasurement;
     }
 
-    public Set (int exerciseId, int setNumber, int targetWeight) {
+    public Set (int exerciseId, int setNumber, int targetWeight, T targetMeasurement, T actualMeasurement) {
         this.exerciseId = exerciseId;
         this.setNumber = setNumber;
         this.targetWeight = targetWeight;
-        this.actualMeasurement = null;
+        this.targetMeasurement = targetMeasurement;
+        this.actualMeasurement = actualMeasurement;
     }
 
 

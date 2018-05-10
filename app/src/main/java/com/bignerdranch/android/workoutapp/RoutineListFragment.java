@@ -2,6 +2,7 @@ package com.bignerdranch.android.workoutapp;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -143,6 +144,8 @@ public class RoutineListFragment extends Fragment {
         // Called when the user clicks on one of the items in the list (held in itemView, which is the View for the entire row)
         @Override
         public void onClick (View view) {
+            //Intent intent = EditRoutineActivity.newIntent(getActivity(), mRoutine.getId());
+            //startActivity (intent);
         }
     }
 

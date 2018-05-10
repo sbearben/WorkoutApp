@@ -9,12 +9,17 @@ import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.SetTable;
 import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.ReppedSetTable;
 import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.ExerciseTable;
 
+import static android.arch.persistence.room.ForeignKey.CASCADE;
+import static android.arch.persistence.room.ForeignKey.RESTRICT;
+
 
 @Entity(tableName = ReppedSetTable.NAME,
         foreignKeys = { @ForeignKey(
                 entity = Exercise.class,
                 parentColumns = ExerciseTable.Cols.EXERCISE_ID,
-                childColumns = SetTable.Cols.PARENT_EXERCISE_ID)},
+                childColumns = SetTable.Cols.PARENT_EXERCISE_ID,
+                onDelete = CASCADE,
+                onUpdate = RESTRICT)},
         indices = { @Index(value = SetTable.Cols.PARENT_EXERCISE_ID)}
         )
 public class ReppedSet extends Set<Integer> {
@@ -23,17 +28,15 @@ public class ReppedSet extends Set<Integer> {
 
     @Ignore
     public ReppedSet() {
-        setActualMeasurement (ACTUAL_REPS_NULL);
     }
 
+    @Ignore
     public ReppedSet (int id, int exerciseId, int setNumber, int targetWeight, Integer targetMeasurement, Integer actualMeasurement) {
         super(id, exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
     }
 
-    @Ignore
-    public ReppedSet (int exerciseId, int setNumber) {
-        super(exerciseId, setNumber, 45);
-        this.targetMeasurement = 8;
+    public ReppedSet (int exerciseId, int setNumber, int targetWeight, Integer targetMeasurement, Integer actualMeasurement) {
+        super(exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
     }
 
     @Override

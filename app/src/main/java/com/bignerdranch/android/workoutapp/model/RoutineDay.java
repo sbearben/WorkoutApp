@@ -14,12 +14,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static android.arch.persistence.room.ForeignKey.CASCADE;
+import static android.arch.persistence.room.ForeignKey.RESTRICT;
+
 
 @Entity(tableName = RoutineDayTable.NAME,
         foreignKeys = { @ForeignKey(
                 entity = Routine.class,
                 parentColumns = RoutineTable.Cols.ROUTINE_ID,
-                childColumns = RoutineDayTable.Cols.PARENT_ROUTINE_ID)},
+                childColumns = RoutineDayTable.Cols.PARENT_ROUTINE_ID,
+                onDelete = CASCADE,
+                onUpdate = RESTRICT)},
         indices = { @Index(value = RoutineDayTable.Cols.PARENT_ROUTINE_ID)}
         )
 public class RoutineDay {
@@ -40,6 +45,9 @@ public class RoutineDay {
     @ColumnInfo(name = RoutineDayTable.Cols.ROUTINE_DAY_COMPLETED)
     private boolean completed; // indicates whether the current workout day has been submitted as completed/finished
 
+    @ColumnInfo(name = RoutineDayTable.Cols.ROUTINE_DAY_TEMPLATE)
+    private boolean template; // indicates whether this workout day is the "template" for all future days (of the respective day number) of that routine
+
     @Ignore
     private List<Exercise> exercises = null;
 
@@ -58,12 +66,13 @@ public class RoutineDay {
     public RoutineDay() {
     }
 
-    public RoutineDay (int id, int routineId, int dayNumber, Date date, boolean completed) {
+    public RoutineDay (int id, int routineId, int dayNumber, Date date, boolean completed, boolean template) {
         this.id = id;
         this.routineId = routineId;
         this.dayNumber = dayNumber;
         this.date = date;
         this.completed = completed;
+        this.template = completed;
         this.exercises = new ArrayList<>();
     }
 
@@ -115,6 +124,14 @@ public class RoutineDay {
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    public boolean isTemplate() {
+        return this.template;
+    }
+
+    public void setTemplate(boolean template) {
+        this.template = template;
     }
 
 

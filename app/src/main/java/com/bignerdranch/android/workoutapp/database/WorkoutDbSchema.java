@@ -26,6 +26,7 @@ public class WorkoutDbSchema {
             public static final String ROUTINE_DAY_NUM = "routine_day_number";
             public static final String ROUTINE_DAY_DATE = "routine_day_date_performed";
             public static final String ROUTINE_DAY_COMPLETED = "routine_day_completed";
+            public static final String ROUTINE_DAY_TEMPLATE = "routine_day_template";
         }
     }
 
