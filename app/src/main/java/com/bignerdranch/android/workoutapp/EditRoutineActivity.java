@@ -78,7 +78,7 @@ public class EditRoutineActivity extends AppCompatActivity {
         activeRoutine = mDataRepository.loadRoutine(routineId);
 
         // Get RoutineDays
-        List<RoutineDay> routineDays = mDataRepository.loadTemplateRoutineDays();
+        List<RoutineDay> routineDays = mDataRepository.loadTemplateRoutineDays(activeRoutine.getId());
         if (routineDays == null) {
             return null;
         }

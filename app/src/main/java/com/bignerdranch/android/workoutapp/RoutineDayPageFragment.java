@@ -335,7 +335,6 @@ public class RoutineDayPageFragment extends Fragment {
 
                 //new Thread(() -> { dataRepository.insertReppedSet(reppedSet); }).start(); // Not sure if I need to do this here (since writing to Db when we back out)
                 exercise.getSets().add ((Set) reppedSet);
-                exerciseViews.mSetViews.get(i).redrawEnabledViews((Set) reppedSet); // Set all the UI elements of that set to their enabled views
             }
             else {
                 TimedSet timedSet = new TimedSet (exercise.getId(), i+1, 0,
@@ -344,7 +343,6 @@ public class RoutineDayPageFragment extends Fragment {
 
                 //new Thread(() -> { dataRepository.insertTimedSet(timedSet); }).start(); // Not sure if I need to do this here (since writing to Db when we back out)
                 exercise.getSets().add ((Set) timedSet);
-                exerciseViews.mSetViews.get(i).redrawEnabledViews((Set) timedSet); // Set all the UI elements of that set to their enabled views
             }
         }
     }
@@ -432,7 +430,6 @@ public class RoutineDayPageFragment extends Fragment {
                             reppedSet.setActualMeasurement(new_value);
 
                             setViews.redrawEnabledViews(reppedSet);
-
                             // TODO: need to start a timer here (Broadcast Intent?)
                         }
                     }

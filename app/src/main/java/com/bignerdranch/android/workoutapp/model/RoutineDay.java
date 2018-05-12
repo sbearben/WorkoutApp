@@ -72,7 +72,7 @@ public class RoutineDay {
         this.dayNumber = dayNumber;
         this.date = date;
         this.completed = completed;
-        this.template = completed;
+        this.template = template;
         this.exercises = new ArrayList<>();
     }
 
@@ -165,7 +165,7 @@ public class RoutineDay {
         String str = "";
 
         str += "RoutineDay: " + getId() + "\n" +
-                "\t" + "Parent Routine Id: " + getRoutineId() + ", day#: " + getDayNumber() + ", date: " + getDate().toString() + "\n";
+                "\t" + "Parent Routine Id: " + getRoutineId() + ", day#: " + getDayNumber() + ", date: " + (getDate() != null ? getDate().toString() : "") + "\n";
         if (exercises != null) {
             for (Exercise exercise : exercises) {
                 str += exercise.toString();
@@ -173,9 +173,6 @@ public class RoutineDay {
         }
 
         return str;
-
-        /*return "RoutineDay: " + getId() + "\n" +
-                "\t" + "Parent Routine Id: " + getRoutineId() + ", day#: " + getDayNumber() + ", date: " + getDate().toString() + "\n";*/
     }
 
 }

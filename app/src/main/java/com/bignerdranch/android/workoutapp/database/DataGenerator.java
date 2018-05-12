@@ -80,11 +80,12 @@ public class DataGenerator {
         List<RoutineDay> routineDays = new ArrayList<>();
         Random rnd = new Random();
 
+        int total = 0;
         for (Routine routine : routines) {
             int numDaysInRoutine = routine_days[routines.indexOf(routine)].length;
             int currentDayNumber = 1;
 
-            int total = 0; // Using this to keep track of the IDs for the first "template" routineDays for the routines
+            //int total = 0; // Using this to keep track of the IDs for the first "template" routineDays for the routines
             for (int i=0; i<numDaysInRoutine; i++) {
                 RoutineDay routineDay = new RoutineDay();
 
@@ -95,13 +96,17 @@ public class DataGenerator {
                 routineDay.setCompleted(false);
                 routineDay.setTemplate(true);
 
+                routineDays.add(routineDay);
+                Log.i(TAG, routineDay.toString());
+
                 total++;
             }
 
-            for (int i = total; i < (20+total); i++) {
+            //for (int i = total; i < (20+total); i++) {
+            for (int i = 0; i < 20; i++) {
                 RoutineDay routineDay = new RoutineDay();
 
-                routineDay.setId(1000 + 20*routines.indexOf(routine) + i);
+                routineDay.setId(1000 + total);
                 routineDay.setRoutineId(routine.getId());
                 routineDay.setDayNumber(currentDayNumber);
                 routineDay.setDate(new GregorianCalendar(2018, routines.indexOf(routine)+1, i+1).getTime());
@@ -111,6 +116,7 @@ public class DataGenerator {
                 routineDays.add(routineDay);
                 currentDayNumber = ((i+1)%numDaysInRoutine) + 1;
 
+                total++;
                 //Log.i (TAG, routineDay.toString());
             }
         }
@@ -154,13 +160,20 @@ public class DataGenerator {
         return exercises;
     }
 
-    public static List<ReppedSet> generateReppedSets (final List<Exercise> exercises) {
+    public static List<ReppedSet> generateReppedSets (final List<Exercise> exercises, final List<RoutineDay> routineDays) {
         List<ReppedSet> reppedSets = new ArrayList<>();
         Random rnd = new Random();
         int reppedSetId = 4000;
 
         for (Exercise exercise : exercises) {
-            //int numCompletedSets = rnd.nextInt(exercise.getTargetNumberSets()+1);
+            boolean isTemplateDay = false;
+
+            for (RoutineDay routineDay : routineDays) {
+                if (routineDay.getId() == exercise.getRoutineDayId()) {
+                    if (routineDay.isTemplate())
+                        isTemplateDay = true;
+                }
+            }
 
             for (int i=0; i < exercise.getTargetNumberSets(); i++) {
                 ReppedSet reppedSet = new ReppedSet();
@@ -175,13 +188,16 @@ public class DataGenerator {
                 // Changed the way we randomly generate the ActualMeasurement, since a value of -1 (which is set in the constant ReppedSet.ACTUAL_REPS_NULL)
                 // indicates that the set was skipped - therefore we want to include it as a possible generate random value for actualMeasurement
                 // - so this code will set reppedSet.actualMeasurement to a value between -1 and reppedSet.targetMeasurement
-                reppedSet.setActualMeasurement(rnd.nextInt(reppedSet.getTargetMeasurement()+2)-1);
-                // NOTE: normally here for the TEMPLATE RoutineDays we'd set the actualMeasurement to NULL -> I'm too lazy to implement that ugly logic here
+                if (isTemplateDay)
+                    reppedSet.setActualMeasurement(ReppedSet.ACTUAL_REPS_NULL);
+                else
+                    reppedSet.setActualMeasurement(rnd.nextInt(reppedSet.getTargetMeasurement()+2)-1);
 
                 reppedSets.add(reppedSet);
                 reppedSetId++;
 
-                //Log.i (TAG, reppedSet.toString());
+                if (isTemplateDay)
+                    Log.i (TAG, reppedSet.toString());
 
             }
         }

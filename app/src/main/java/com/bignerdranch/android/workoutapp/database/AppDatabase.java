@@ -85,7 +85,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             List<Routine> routines = DataGenerator.generateRoutines();
                             List<RoutineDay> routineDays = DataGenerator.generateRoutineDays(routines);
                             List<Exercise> exercises = DataGenerator.generateExercises(routineDays, routines);
-                            List<ReppedSet> reppedSets = DataGenerator.generateReppedSets(exercises);
+                            List<ReppedSet> reppedSets = DataGenerator.generateReppedSets(exercises, routineDays);
 
                             insertData(database, routines, routineDays, exercises, reppedSets);
                             // notify that the database was created and it's ready to be used

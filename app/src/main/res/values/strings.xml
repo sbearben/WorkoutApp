@@ -25,6 +25,6 @@
     <string name="new_exercise_sets_empty_error">Must be a positive integer between 1 and %1$d inclusive</string>
     <string name="exercise_name_hint">Exercise Name</string>
     <string name="exercise_number_sets_hint">Number of sets</string>
-    <string name="exercise_type_heading">Exercise Type</string>
+    <string name="exercise_type_heading">Exercise Type </string>
 
 </resources>
