@@ -27,7 +27,7 @@ import static android.arch.persistence.room.ForeignKey.RESTRICT;
                 onUpdate = RESTRICT)},
         indices = { @Index(value = RoutineDayTable.Cols.PARENT_ROUTINE_ID)}
         )
-public class RoutineDay {
+public class RoutineDay implements Copyable<RoutineDay> {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = RoutineDayTable.Cols.ROUTINE_DAY_ID)
@@ -52,18 +52,9 @@ public class RoutineDay {
     private List<Exercise> exercises = null;
 
 
-    /*public RoutineDay(int dayNumber) {
-        this(UUID.randomUUID(), dayNumber);
-    }
-
-    public RoutineDay (UUID id, int dayNumber) {
-        this.id = id;
-        this.dayNumber = dayNumber;
-        this.date = new Date();
-    }*/
-
     @Ignore
     public RoutineDay() {
+        this.exercises = new ArrayList<>();
     }
 
     public RoutineDay (int id, int routineId, int dayNumber, Date date, boolean completed, boolean template) {
@@ -77,13 +68,30 @@ public class RoutineDay {
     }
 
     @Ignore
-    public RoutineDay (int routineId, int dayNumber) {
+    public RoutineDay (int routineId, int dayNumber, Date date, boolean completed, boolean template) {
         this.routineId = routineId;
         this.dayNumber = dayNumber;
-        this.date = new Date();
-        this.completed = false;
+        this.date = date;
+        this.completed = completed;
+        this.template = template;
+        this.exercises = new ArrayList<>();
     }
 
+    // A copy means a new instance of RoutineDay with all the same fields, except its ID is uninitialized
+    @Override
+    public RoutineDay createCopy() {
+        return new RoutineDay(this.routineId, this.dayNumber, this.date, this.completed, this.template);
+    }
+
+    @Override
+    public RoutineDay createDeepCopy() {
+        RoutineDay routineDay = this.createCopy();
+        for (Exercise exercise : this.getExercises()) {
+            routineDay.addExercise(exercise.createDeepCopy());
+        }
+
+        return routineDay;
+    }
 
     public int getId() {
         return this.id;
@@ -158,6 +166,18 @@ public class RoutineDay {
             }
         }
         return null;
+    }
+
+    // Method that returns a boolean depending on if any of the Sets in the Exercises of the RoutineDay are "non-null" aka have any sets been performed or is this a new RoutineDau
+    public boolean isStarted() {
+        for (Exercise exercise : this.getExercises()) {
+            for (Set exerciseSet : exercise.getSets()) {
+                if (!exerciseSet.isSetNull())
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     @Override

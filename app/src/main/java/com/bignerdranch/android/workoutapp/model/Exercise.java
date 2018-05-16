@@ -27,7 +27,7 @@ import static android.arch.persistence.room.ForeignKey.RESTRICT;
                 onUpdate = RESTRICT)},
         indices = { @Index(value = ExerciseTable.Cols.PARENT_ROUTINE_DAY_ID)}
         )
-public class Exercise {
+public class Exercise implements Copyable<Exercise> {
 
     public static final String REPPED = "Repped";
     public static final String TIMED = "Timed";
@@ -72,20 +72,35 @@ public class Exercise {
         this.targetNumberSets = targetNumberSets;
         this.type = type;
 
-
         this.sets = new ArrayList<>();
         //initializeSets();
     }
 
     @Ignore
-    public Exercise (int routineDayId, String name, int number, String type) {
-        //mNumberSets = 3;
+    public Exercise (int routineDayId, String name, int number, int targetNumberSets, String type) {
         this.routineDayId = routineDayId;
         this.name = name;
         this.number = number;
+        this.targetNumberSets = targetNumberSets;
         this.type = type;
 
-        //initializeSets();
+        this.sets = new ArrayList<>();
+
+    }
+
+    @Override
+    public Exercise createCopy() {
+        return new Exercise(this.routineDayId, this.name, this.number, this.targetNumberSets, this.type);
+    }
+
+    @Override
+    public Exercise createDeepCopy() {
+        Exercise exercise = this.createCopy();
+        for (Set exerciseSet : this.getSets()) {
+            exercise.addSet(exerciseSet.createCopy());
+        }
+
+        return exercise;
     }
 
     /*private void initializeSets() {

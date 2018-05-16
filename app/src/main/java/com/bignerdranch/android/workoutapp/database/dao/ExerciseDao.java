@@ -6,6 +6,7 @@ import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
+import android.arch.persistence.room.Update;
 
 import com.bignerdranch.android.workoutapp.model.Exercise;
 
@@ -31,10 +32,13 @@ public interface ExerciseDao {
     List<Exercise> getFirstNExercisesInRoutineDay (int routineDayId, int numberExercises);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertAllExercises(List<Exercise> exercises);
+    long[] insertAllExercises(List<Exercise> exercises);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insertExercise(Exercise exercise);
+
+    @Update
+    void updateExercise(Exercise exercise);
 
     @Delete
     public void deleteExercise (Exercise exercise);

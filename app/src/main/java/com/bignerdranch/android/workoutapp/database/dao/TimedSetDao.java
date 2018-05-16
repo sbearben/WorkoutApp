@@ -25,10 +25,10 @@ public interface TimedSetDao {
     List<TimedSet> getAllTimedExerciseSets(int exerciseId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertAllTimedSets(List<TimedSet> timedSets);
+    long[] insertAllTimedSets(List<TimedSet> timedSets);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertTimedSet(TimedSet timedSet);
+    long insertTimedSet(TimedSet timedSet);
 
     @Delete
     public void deleteTimedSet (TimedSet timedSet);

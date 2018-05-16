@@ -32,13 +32,23 @@ public class TimedSet extends Set<Date> {
     public TimedSet() {
     }
 
-    @Ignore
     public TimedSet (int id, int exerciseId, int setNumber, int targetWeight, Date targetMeasurement, Date actualMeasurement) {
         super(id, exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
     }
 
+    @Ignore
     public TimedSet (int exerciseId, int setNumber, int targetWeight, Date targetMeasurement, Date actualMeasurement) {
         super(exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
+    }
+
+    @Override
+    public Set createCopy() {
+        return new TimedSet(this.getExerciseId(), this.getSetNumber(), this.getTargetWeight(), this.getTargetMeasurement(), this.getActualMeasurement());
+    }
+
+    @Override
+    public Set createDeepCopy() {
+        return createCopy();
     }
 
     @Override
@@ -53,7 +63,7 @@ public class TimedSet extends Set<Date> {
 
     @Override
     public boolean isSetNull() {
-        return false; // TODO: Implement this properly
+        return true; // TODO: Implement this properly
     }
 
     private String dateToString (Date date) {

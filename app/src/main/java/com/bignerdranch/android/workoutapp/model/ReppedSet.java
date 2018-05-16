@@ -30,13 +30,23 @@ public class ReppedSet extends Set<Integer> {
     public ReppedSet() {
     }
 
-    @Ignore
     public ReppedSet (int id, int exerciseId, int setNumber, int targetWeight, Integer targetMeasurement, Integer actualMeasurement) {
         super(id, exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
     }
 
+    @Ignore
     public ReppedSet (int exerciseId, int setNumber, int targetWeight, Integer targetMeasurement, Integer actualMeasurement) {
         super(exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
+    }
+
+    @Override
+    public Set createCopy() {
+        return new ReppedSet(this.getExerciseId(), this.getSetNumber(), this.getTargetWeight(), this.getTargetMeasurement(), this.getActualMeasurement());
+    }
+
+    @Override
+    public Set createDeepCopy() {
+        return createCopy();
     }
 
     @Override

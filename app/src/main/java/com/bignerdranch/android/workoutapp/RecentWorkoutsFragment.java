@@ -50,15 +50,18 @@ public class RecentWorkoutsFragment extends Fragment {
     private List<Routine> mRoutines;
     private Map<String, Integer> mRoutineIdNameMap;
     private List<Integer> mRoutineDayIds;
-    private List<RoutineDay> mActiveRoutineTemplateDays;
+
+    private List<RoutineDay> mActiveRoutineTemplateDays; // List of our template RoutineDays as well as a matching list of their respective IDs
+    private ArrayList<Integer> mActiveRoutineTemplateDayIds; // Need to use an ArrayList since we are passing it as Intent/Fragament EXTRA/ARG and it is serializable
 
     private AppCompatSpinner mToolbarSpinner;
-    private View mEmptyRoutinesView;
+    private View mEmptyRoutinesView; // TODO: need to implement this
     private Button mEmptyRoutinesButton;
     private FloatingActionButton mFloatingActionButton;
 
-    // All the items that hold the details of our recent workouts
-    private List<RecentWorkoutViews> mRecentWorkoutViews;
+    private boolean mIsInitialSpinnerSelection = true; // boolean to make sure the Spinner callback onItemSelected doesn't execute its contained code when we initialize its first item with setSelection()
+
+    private List<RecentWorkoutViews> mRecentWorkoutViews; // All the items that hold the details of our recent workouts
 
 
     public static RecentWorkoutsFragment newInstance() {
@@ -108,7 +111,7 @@ public class RecentWorkoutsFragment extends Fragment {
             // Set the CardView's onClickListner to open up the RoutineDay page if the routine day is clicked on
             recentWorkoutView.mCardView.setOnClickListener((View view) -> {
                 if (mRoutineDayIds != null) {
-                    Intent intent = RoutineDayPageActivity.newIntent(getActivity(), mRoutineDayIds.get(i_copy));
+                    Intent intent = RoutineDayPageActivity.newIntent(getActivity(), mRoutineDayIds.get(i_copy), mActiveRoutineTemplateDayIds, mActiveRoutine.getName());
                     startActivity(intent);
                 }
             });
@@ -251,13 +254,18 @@ public class RecentWorkoutsFragment extends Fragment {
             mToolbarSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    String selectedRoutineName = (String) parent.getItemAtPosition(position);
-                    mActiveRoutineId = mRoutineIdNameMap.get(selectedRoutineName);
-                    mFloatingActionButton.setOnClickListener(null);
+                    if (!mIsInitialSpinnerSelection) {
+                        String selectedRoutineName = (String) parent.getItemAtPosition(position);
+                        mActiveRoutineId = mRoutineIdNameMap.get(selectedRoutineName);
+                        mFloatingActionButton.setOnClickListener(null);
 
-                    new CreateRoutineTask(mActiveRoutineId).execute();
-                    // Save the selected RoutineId in SharedPreferences so that we can load the correct Routine if we navigate away and back again
-                    SharedPreferences.setActiveRoutineId(context, mActiveRoutineId);
+                        new CreateRoutineTask(mActiveRoutineId).execute();
+                        // Save the selected RoutineId in SharedPreferences so that we can load the correct Routine if we navigate away and back again
+                        SharedPreferences.setActiveRoutineId(context, mActiveRoutineId);
+                    }
+                    else {
+                        mIsInitialSpinnerSelection = false;
+                    }
                 }
 
                 @Override
@@ -272,14 +280,14 @@ public class RecentWorkoutsFragment extends Fragment {
         }
     }
 
-    private void init_new_routineday_fab (FloatingActionButton fab, List<RoutineDay> templateDays, int dayNumber) {
+    private void init_new_routineday_fab (List<RoutineDay> templateDays, int dayNumber, ArrayList<Integer> templateDayIds, String routineName) {
         if (dayNumber == templateDays.size()) {
             dayNumber = 0;
         }
 
         final int dayNumber_copy = dayNumber; // Need this because Android Studio whines if we use dayNumber because of the above if statement
-        fab.setOnClickListener((View view) -> {
-            Intent intent = RoutineDayPageActivity.newIntent(getActivity(), templateDays.get(dayNumber_copy).getId());
+        mFloatingActionButton.setOnClickListener((View view) -> {
+            Intent intent = RoutineDayPageActivity.newIntent(getActivity(), templateDays.get(dayNumber_copy).getId(), templateDayIds, routineName);
             startActivity(intent);
         });
     }
@@ -491,20 +499,26 @@ public class RecentWorkoutsFragment extends Fragment {
 
         private int mRoutineId;
         private List<RoutineDay> mTemplateDays;
+        private ArrayList<Integer> mTemplateDayIds; // Need this because we initialize this list in doInBackground(), but need to assign it to a our global list of TemplateDayIds in onPostExecute()
 
         public CreateRoutineTask (int routineId) {
             mRoutineId = routineId;
+            mTemplateDayIds = new ArrayList<>();
         }
 
         @Override
         protected Routine doInBackground (Void... params) {
             mTemplateDays = getTemplateDays(mRoutineId); // Need to get the ID's of the template days so that we can use them when we add a new RoutineDay
+            for (RoutineDay templateDay : mTemplateDays) {
+                mTemplateDayIds.add(templateDay.getId());
+            }
             return createRoutineObject(mRoutineId);
         }
 
         @Override
         protected void onPostExecute (Routine routine) {
-            mActiveRoutine = routine;
+            mActiveRoutine = routine; // Assign the routine to our global variable mActiveRoutine so we can use outside the AsynTask
+            mActiveRoutineTemplateDayIds = mTemplateDayIds; // Assign the list of template day IDs to our global variable mActiveRoutineTemplateDayIds so we can use outside the AsynTask
 
             int lastDayNumber = 0; // 0 in this case would indicate that there have been no previous RoutineDays, so we should start at Day 1
             if (routine != null) { // need this since the call to getRoutineDays() was crashing the app the first time we installed it and the data is being generated (can probably remove once we stop doing data generation)
@@ -512,10 +526,11 @@ public class RecentWorkoutsFragment extends Fragment {
                     lastDayNumber = routine.getRoutineDays().get(0).getDayNumber();
                 }
             }
-            for (RoutineDay routineDay : mTemplateDays)
-                Log.i(TAG, routineDay.toString());
+            /*for (RoutineDay routineDay : mTemplateDays)
+                Log.i(TAG, routineDay.toString());*/
 
-            init_new_routineday_fab(mFloatingActionButton, mTemplateDays, lastDayNumber); // Now that we have our template days we can set the fab onClickListener
+            if (routine != null) // need this since the call to getRoutineDays() was crashing the app the first time we installed it and the data is being generated (can probably remove once we stop doing data generation)
+                init_new_routineday_fab(mTemplateDays, lastDayNumber, mTemplateDayIds, routine.getName()); // Now that we have our template days we can set the fab onClickListener
             updateUI();
         }
     }

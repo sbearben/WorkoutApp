@@ -63,7 +63,8 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="25dp"
             android:layout_marginRight="25dp"
-            android:paddingBottom="25dp"
+            android:paddingStart="0dp"
+            android:paddingBottom="12dp"
             android:overlapAnchor="false"
             style="@style/Widget.AppCompat.Spinner.Underlined"/>
 

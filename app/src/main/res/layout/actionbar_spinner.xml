@@ -20,26 +20,37 @@
         <TextView
             android:id="@+id/custom_toolbar_title"
             style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:text="@string/app_name"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintEnd_toStartOf="@id/actionbar_spinner_guideline" />
 
+
+        <android.support.constraint.Guideline
+            android:id="@+id/actionbar_spinner_guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.6" />
 
         <android.support.v7.widget.AppCompatSpinner
             android:id="@+id/routines_spinner"
             style="@style/Widget.AppCompat.Spinner.Underlined"
-            android:layout_width="140dp"
-            android:dropDownWidth="140dp"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_centerVertical="true"
+            android:dropDownWidth="match_parent"
+            android:overlapAnchor="false"
+            android:paddingBottom="3dp"
+            android:paddingEnd="30dp"
+            android:paddingStart="0dp"
+            android:paddingTop="0dp"
+            app:layout_constraintStart_toEndOf="@id/actionbar_spinner_guideline"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:overlapAnchor="false" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </android.support.constraint.ConstraintLayout>
 

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/toolbar_spinner"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:background="@color/colorPrimary"
+    android:contentInsetStart="0dp"
+    android:contentInsetLeft="0dp"
+    app:contentInsetLeft="0dp"
+    app:contentInsetStart="0dp"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+    app:popupTheme="@style/ThemeOverlay.AppCompat.Dark">
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/actionbar_routineday_name_textview"
+            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Menu"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            tools:text="SL 5x5"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toTopOf="@id/actionbar_routineday_day_spinner"
+            app:layout_constraintEnd_toStartOf="@id/actionbar_routineday_guideline1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <android.support.v7.widget.AppCompatSpinner
+            android:id="@+id/actionbar_routineday_day_spinner"
+            style="@style/Widget.AppCompat.Spinner.Underlined"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:overlapAnchor="false"
+            android:paddingTop="0dp"
+            android:paddingBottom="3dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="30dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/actionbar_routineday_guideline1"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <android.support.constraint.Guideline
+            android:id="@+id/actionbar_routineday_guideline1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.333" />
+
+        <TextView
+            android:id="@+id/actionbar_routineday_date_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableEnd="@drawable/ic_expand_more_black_24dp"
+            tools:text="Sat, 08 May"
+            android:textColor="@drawable/actionbar_text_selector"
+            android:textSize="17sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/actionbar_routineday_guideline2"
+            app:layout_constraintStart_toStartOf="@+id/actionbar_routineday_guideline1"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <android.support.constraint.Guideline
+            android:id="@+id/actionbar_routineday_guideline2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.667" />
+
+        <TextView
+            android:id="@+id/actionbar_routineday_done_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@drawable/actionbar_text_selector"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:text="@string/routineday_done_text" />
+
+
+
+    </android.support.constraint.ConstraintLayout>
+
+</android.support.v7.widget.Toolbar>

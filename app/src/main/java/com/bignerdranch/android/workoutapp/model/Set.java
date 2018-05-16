@@ -7,7 +7,7 @@ import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.SetTable;
 
 import java.util.UUID;
 
-public abstract class Set<T> {
+public abstract class Set<T> implements Copyable<Set> {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = SetTable.Cols.SET_ID)
@@ -23,7 +23,7 @@ public abstract class Set<T> {
     private int targetWeight;
 
     @ColumnInfo(name = SetTable.Cols.SET_TARGET_MEASUREMENT)
-    protected T targetMeasurement; // Measurement is simply how success of the set is measured (for barbell exercises this is reps, for others such as planks this is timed)
+    private T targetMeasurement; // Measurement is simply how success of the set is measured (for barbell exercises this is reps, for others such as planks this is timed)
 
     @ColumnInfo(name = SetTable.Cols.SET_ACTUAL_MEASUREMENT)
     private T actualMeasurement;
@@ -122,6 +122,10 @@ public abstract class Set<T> {
     // Abstract method that returns a boolean based on whether the set is null (was performed/skipped) or not
     // - if this returns true then the set was skipped, if not then the set was performed
     public abstract boolean isSetNull();
+
+    public abstract Set createCopy();
+
+    public abstract Set createDeepCopy();
 
     @Override
     public String toString() {

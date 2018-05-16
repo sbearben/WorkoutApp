@@ -14,7 +14,7 @@ import java.util.UUID;
 
 
 @Entity (tableName = RoutineTable.NAME) // Caution - table names in SQLLite are case-INsensitive
-public class Routine {
+public class Routine implements Copyable<Routine> {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = RoutineTable.Cols.ROUTINE_ID)
@@ -31,18 +31,9 @@ public class Routine {
     private List<RoutineDay> routineDays = null;
 
 
-    /*public Routine (String name) {
-        this(UUID.randomUUID(), name);
-    }
-
-    public Routine (UUID id, String name) {
-        this.id = id;
-        this.name = name;
-        this.dateCreated = new Date();
-    }*/
-
     @Ignore
     public Routine() {
+        this.routineDays = new ArrayList<>();
     }
 
     public Routine (int id, String name, Date dateCreated) {
@@ -53,11 +44,26 @@ public class Routine {
     }
 
     @Ignore
-    public Routine (String name) {
+    public Routine (String name, Date dateCreated) {
         this.name = name;
-        this.dateCreated = new Date();
+        this.dateCreated = dateCreated;
+        this.routineDays = new ArrayList<>();
     }
 
+    // A copy means a new instance of Routine with all the same fields, except its ID is uninitialized
+    @Override
+    public Routine createCopy() {
+        return new Routine(this.name, this.dateCreated);
+    }
+
+    @Override
+    public Routine createDeepCopy() {
+        Routine routine = this.createCopy();
+        for (RoutineDay routineDay : this.getRoutineDays())
+            routine.addRoutineDay(routineDay.createDeepCopy());
+
+        return routine;
+    }
 
     public int getId() {
         return this.id;
@@ -120,7 +126,5 @@ public class Routine {
         }
 
         return str;
-
-        //return "Routine: " + getId() + "-" + getName() + ", " + "Created: " + getDateCreated().toString() + "\n";
     }
 }

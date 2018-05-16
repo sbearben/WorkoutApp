@@ -23,7 +23,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
-                                                <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/content/ic_add_black_24dp.xml" />
+                                                <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/hardware/ic_keyboard_arrow_down_black_24dp.xml" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -33,7 +33,7 @@
                                   </option>
                                   <option name="values">
                                     <map>
-                                      <entry key="outputName" value="ic_menu_add" />
+                                      <entry key="outputName" value="ic_menu_down_arrow" />
                                       <entry key="theme" value="HOLO_DARK" />
                                     </map>
                                   </option>
@@ -70,7 +70,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/navigation/ic_chevron_right_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/navigation/ic_expand_more_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -80,12 +80,10 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="595959" />
-                            <entry key="height" value="40" />
-                            <entry key="outputName" value="ic_chevron_right_black_40dp" />
+                            <entry key="color" value="ffffff" />
+                            <entry key="outputName" value="ic_expand_more_black_24dp" />
                             <entry key="overrideSize" value="true" />
                             <entry key="sourceFile" value="C:\Users\Arman" />
-                            <entry key="width" value="40" />
                           </map>
                         </option>
                       </PersistentState>

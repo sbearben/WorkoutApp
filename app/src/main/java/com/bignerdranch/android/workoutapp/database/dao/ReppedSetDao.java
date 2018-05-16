@@ -25,10 +25,10 @@ public interface ReppedSetDao {
     List<ReppedSet> getAllReppedExerciseSets(int exerciseId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertAllReppedSets(List<ReppedSet> reppedSets);
+    long[] insertAllReppedSets(List<ReppedSet> reppedSets);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertReppedSet(ReppedSet reppedSet);
+    long insertReppedSet(ReppedSet reppedSet);
 
     @Delete
     public void deleteReppedSet (ReppedSet reppedSet);

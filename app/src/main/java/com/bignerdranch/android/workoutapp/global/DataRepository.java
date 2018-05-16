@@ -84,8 +84,16 @@ public class DataRepository {
         mDatabase.routineDayDao().insertAllRoutineDays(routineDays);
     }
 
-    public void insertRoutineDay (final RoutineDay routineDay) {
-        mDatabase.routineDayDao().insertRoutineDay(routineDay );
+    public long insertRoutineDay (final RoutineDay routineDay) {
+        return mDatabase.routineDayDao().insertRoutineDay(routineDay );
+    }
+
+    public void deleteRoutineDay (final RoutineDay routineDay) {
+        mDatabase.routineDayDao().deleteRoutineDay(routineDay);
+    }
+
+    public void deleteRoutineDays (final RoutineDay routineDays) {
+        mDatabase.routineDayDao().deleteRoutineDays(routineDays);
     }
 
     /**
@@ -107,12 +115,16 @@ public class DataRepository {
         return mDatabase.exerciseDao().getFirstNExercisesInRoutineDay(routineDayId, numberExercises);
     }
 
-    public void insertExercises (final List<Exercise> exercises) {
-        mDatabase.exerciseDao().insertAllExercises(exercises);
+    public long[] insertExercises (final List<Exercise> exercises) {
+        return mDatabase.exerciseDao().insertAllExercises(exercises);
     }
 
     public long insertExercise (final Exercise exercise) {
         return mDatabase.exerciseDao().insertExercise(exercise);
+    }
+
+    public void updateExercise (final Exercise exercise) {
+        mDatabase.exerciseDao().updateExercise(exercise);
     }
 
     public void deleteExercise (final Exercise exercise) {
@@ -138,12 +150,12 @@ public class DataRepository {
         return mDatabase.reppedSetDao().getAllReppedExerciseSets(exerciseId);
     }
 
-    public void insertReppedSets (final List<ReppedSet> reppedSets) {
-        mDatabase.reppedSetDao().insertAllReppedSets(reppedSets);
+    public long[] insertReppedSets (final List<ReppedSet> reppedSets) {
+        return mDatabase.reppedSetDao().insertAllReppedSets(reppedSets);
     }
 
-    public void insertReppedSet (final ReppedSet reppedSet) {
-        mDatabase.reppedSetDao().insertReppedSet(reppedSet);
+    public long insertReppedSet (final ReppedSet reppedSet) {
+        return mDatabase.reppedSetDao().insertReppedSet(reppedSet);
     }
 
     public void deleteReppedSet (final ReppedSet reppedSet) {
@@ -169,12 +181,12 @@ public class DataRepository {
         return mDatabase.timedSetDao().getAllTimedExerciseSets(exerciseId);
     }
 
-    public void insertTimedSets (final List<TimedSet> timedSets) {
-        mDatabase.timedSetDao().insertAllTimedSets(timedSets);
+    public long[] insertTimedSets (final List<TimedSet> timedSets) {
+        return mDatabase.timedSetDao().insertAllTimedSets(timedSets);
     }
 
-    public void insertTimedSet (final TimedSet timedSet) {
-        mDatabase.timedSetDao().insertTimedSet(timedSet);
+    public long insertTimedSet (final TimedSet timedSet) {
+        return mDatabase.timedSetDao().insertTimedSet(timedSet);
     }
 
     public void deleteTimedSet (final TimedSet timedSet) {

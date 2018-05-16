@@ -6,6 +6,11 @@
         android:id="@+id/new_exercise"
         android:icon="@drawable/ic_menu_add"
         android:title="@string/add_exercise"
-        app:showAsAction="ifRoom|withText" />
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/delete_routineday"
+        android:title="@string/delete_routineday"
+        app:showAsAction="never" />
 
 </menu>
