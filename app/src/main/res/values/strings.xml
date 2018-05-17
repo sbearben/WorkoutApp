@@ -12,11 +12,17 @@
     <string name="menu_routines">Routines</string>
     <string name="menu_history">History</string>
 
+    <!-- RecentWorkoutsFragment -->
     <string name="empty_routines_text">You have not created any routines</string>
     <string name="add_routine_button">Create first routine</string>
+    <string name="new_routineday_dialog_title">Start new workout day?</string>
+    <string name="new_routineday_dialog_positive_button">Continue</string>
+    <string name="new_routineday_dialog_negative_button">Cancel</string>
 
     <string name="right_chevron_description">Right chevron</string>
 
+    <!-- RoutineDayPageFragment -->
+    <string name="routineday_done_text">Done</string>
     <string name="add_exercise">Add Exercise</string>
     <string name="delete_routineday">Delete Workout Day</string>
 
@@ -31,6 +37,5 @@
     <!-- Title for the DatePicker -->
     <string name="date_picker_title">Date of workout:</string>
 
-    <string name="routineday_done_text">Done</string>
 
 </resources>

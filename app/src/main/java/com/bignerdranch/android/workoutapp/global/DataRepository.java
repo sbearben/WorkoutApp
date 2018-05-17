@@ -76,6 +76,10 @@ public class DataRepository {
         return mDatabase.routineDayDao().getMostRecentDaysInRoutine(routineId, numberDays);
     }
 
+    public List<RoutineDay> loadOngoingDaysInRoutine (final int routineId) {
+        return mDatabase.routineDayDao().getOngoingDaysInRoutine(routineId);
+    }
+
     public List<RoutineDay> loadTemplateRoutineDays(final int routineId) {
         return mDatabase.routineDayDao().getTemplateRoutineDays(routineId);
     }
@@ -86,6 +90,10 @@ public class DataRepository {
 
     public long insertRoutineDay (final RoutineDay routineDay) {
         return mDatabase.routineDayDao().insertRoutineDay(routineDay );
+    }
+
+    public void updateRoutineDay (final RoutineDay routineDay) {
+        mDatabase.routineDayDao().updateRoutineDay(routineDay);
     }
 
     public void deleteRoutineDay (final RoutineDay routineDay) {

@@ -168,8 +168,6 @@ public class RoutineDayPageFragment extends Fragment {
                         routineDay.setTemplate(false);
                         routineDay.setDate(mRoutineDayDate);
 
-                        Log.i(TAG, routineDay.toString());
-
                         mRoutineDay = routineDay;
                         new WriteRoutineDayTask(mRoutineDay).execute();
                     }

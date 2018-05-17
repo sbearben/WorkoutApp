@@ -2,12 +2,15 @@ package com.bignerdranch.android.workoutapp;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.CardView;
@@ -18,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.bignerdranch.android.workoutapp.global.BasicApp;
@@ -174,9 +178,16 @@ public class RecentWorkoutsFragment extends Fragment {
         if (routineId != SharedPreferences.NO_ACTIVE_ROUTINE) {
             activeRoutine = mDataRepository.loadRoutine(routineId);
 
-            // Get RoutineDays
-            List<RoutineDay> routineDays = mDataRepository.loadMostRecentDaysInRoutine(routineId, MAX_RECENT_WORKOUT_DAYS);
-            if (routineDays == null) {
+            // We first want to check if we have any Ongoing RoutineDays in the Routine (should only be a max of 1 if any)
+            List<RoutineDay> routineDays = new ArrayList<>(mDataRepository.loadOngoingDaysInRoutine(routineId));
+            if (routineDays.size() > 0) {
+                routineDays.addAll(mDataRepository.loadMostRecentDaysInRoutine(routineId, MAX_RECENT_WORKOUT_DAYS-1));
+            }
+            else {
+                routineDays.addAll(mDataRepository.loadMostRecentDaysInRoutine(routineId, MAX_RECENT_WORKOUT_DAYS));
+            }
+
+            if (routineDays.size() == 0) {
                 return null;
             }
             activeRoutine.addRoutineDays(routineDays);
@@ -287,8 +298,36 @@ public class RecentWorkoutsFragment extends Fragment {
 
         final int dayNumber_copy = dayNumber; // Need this because Android Studio whines if we use dayNumber because of the above if statement
         mFloatingActionButton.setOnClickListener((View view) -> {
-            Intent intent = RoutineDayPageActivity.newIntent(getActivity(), templateDays.get(dayNumber_copy).getId(), templateDayIds, routineName);
-            startActivity(intent);
+
+            if (!mActiveRoutine.getRoutineDays().get(0).isCompleted()) { // Check if we have an Ongoing RoutineDay - only want to display the AlertDialog if we do
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+                View v = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_ongoing_routineday, null);
+                CheckBox checkBox = (CheckBox) v.findViewById(R.id.dialog_ongoing_routineday_checkbox);
+
+                builder.setView(v)
+                        .setTitle(R.string.new_routineday_dialog_title)
+                        .setPositiveButton(R.string.new_routineday_dialog_positive_button, (DialogInterface dialog, int which) -> {
+                            RoutineDay ongoingRoutine = mActiveRoutine.getRoutineDays().get(0);
+                            // If the checkbox is checked, set the ongoing RoutineDay as completed, then update its row in the DB - if not delete the ongoing RoutineDay from the DB
+                            if (checkBox.isChecked()) {
+                                ongoingRoutine.setCompleted(true);
+                                new Thread(() -> { mDataRepository.updateRoutineDay(ongoingRoutine); }).start();
+                            }
+                            else {
+                                new Thread(() -> { mDataRepository.deleteRoutineDay(ongoingRoutine); }).start();
+                            }
+
+                            Intent intent = RoutineDayPageActivity.newIntent(getActivity(), templateDays.get(dayNumber_copy).getId(), templateDayIds, routineName);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton(R.string.new_routineday_dialog_negative_button, null)
+                        .show();
+            }
+            else {
+                Intent intent = RoutineDayPageActivity.newIntent(getActivity(), templateDays.get(dayNumber_copy).getId(), templateDayIds, routineName);
+                startActivity(intent);
+            }
         });
     }
 
