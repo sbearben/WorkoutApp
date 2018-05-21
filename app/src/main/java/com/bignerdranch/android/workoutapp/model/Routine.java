@@ -4,6 +4,7 @@ import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
 import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.RoutineTable;
 
@@ -15,6 +16,9 @@ import java.util.UUID;
 
 @Entity (tableName = RoutineTable.NAME) // Caution - table names in SQLLite are case-INsensitive
 public class Routine implements Copyable<Routine> {
+
+    public static final int MAX_ROUTINE_DAYS = 7;
+
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = RoutineTable.Cols.ROUTINE_ID)
@@ -112,6 +116,24 @@ public class Routine implements Copyable<Routine> {
             }
         }
         return null;
+    }
+
+    public static ArrayList<Integer> createRoutineDayIdList(@NonNull List<RoutineDay> routineDays) {
+        ArrayList<Integer> routineDayIdList = new ArrayList<>();
+
+        for (RoutineDay routineDay : routineDays) {
+            try {
+                routineDayIdList.add(routineDay.getId());
+            }
+            catch (Exception e) {
+                return null;
+            }
+        }
+        return routineDayIdList;
+    }
+
+    public ArrayList<Integer> createRoutineDayIdList() {
+        return createRoutineDayIdList(getRoutineDays());
     }
 
     @Override

@@ -24,6 +24,8 @@ import static android.arch.persistence.room.ForeignKey.RESTRICT;
         )
 public class ReppedSet extends Set<Integer> {
 
+    public static final int MIN_TARGET_REPS = 1;
+    public static final int MAX_TARGET_REPS = 100;
     public static final int ACTUAL_REPS_NULL = -1;
 
     @Ignore

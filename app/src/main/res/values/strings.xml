@@ -16,6 +16,8 @@
     <string name="empty_routines_text">You have not created any routines</string>
     <string name="add_routine_button">Create first routine</string>
     <string name="new_routineday_dialog_title">Start new workout day?</string>
+    <string name="new_routineday_dialog_message">There is an ongoing workout. Continuing without saving will override it.</string>
+    <string name="new_routineday_dialog_checkbox">Save ongoing workout day</string>
     <string name="new_routineday_dialog_positive_button">Continue</string>
     <string name="new_routineday_dialog_negative_button">Cancel</string>
 
@@ -26,6 +28,9 @@
     <string name="add_exercise">Add Exercise</string>
     <string name="delete_routineday">Delete Workout Day</string>
 
+    <!-- EditRoutineFragment-->
+    <string name="actionbar_edit_routine_title">Edit Routine</string>
+
     <!-- NewExerciseFragment strings -->
     <string name="new_exercise_title">Add Exercise:</string>
     <string name="new_exercise_name_empty_error">Exercise name can\'t be empty</string>
@@ -33,6 +38,13 @@
     <string name="exercise_name_hint">Exercise Name</string>
     <string name="exercise_number_sets_hint">Number of sets</string>
     <string name="exercise_type_heading">Exercise Type </string>
+
+    <!-- NewRoutineFragment strings -->
+    <string name="new_routine_title">New Routine:</string>
+    <string name="new_routine_name_empty_error">Routine name can\'t be empty</string>
+    <string name="new_routine_days_empty_error">Must be a positive integer between 1 and %1$d inclusive</string>
+    <string name="routine_name_hint">Routine Name</string>
+    <string name="routine_number_days_hint">Number of days</string>
 
     <!-- Title for the DatePicker -->
     <string name="date_picker_title">Date of workout:</string>

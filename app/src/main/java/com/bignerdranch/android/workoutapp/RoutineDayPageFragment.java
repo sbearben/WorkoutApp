@@ -46,8 +46,8 @@ import java.util.List;
 public class RoutineDayPageFragment extends Fragment {
 
     private static final String TAG = "RoutineDayPageFragment";
+
     private static final String ARG_ROUTINEDAY_ID = "routineday_id";
-    private static final String ARG_IS_TEMPLATE = "is_template";
     private static final String ARG_TEMPLATE_DAY_IDS = "template_day_ids";
     private static final String ARG_ROUTINE_NAME = "routine_name";
 
@@ -144,7 +144,7 @@ public class RoutineDayPageFragment extends Fragment {
 
         // Setup our custom toolbar and Spinner
         init_toolbar(getActivity());
-        new CreateRoutineDayTask(mRoutineDayId, true).execute();
+        new CreateRoutineDayTask(mRoutineDayId).execute();
     }
 
     /* We want to write the RoutineDay back to the Db when onPause() is called. The tutorial located in the following link suggests
@@ -247,7 +247,7 @@ public class RoutineDayPageFragment extends Fragment {
                 if (!mIsInitialSpinnerSelection) {
                     //Log.i(TAG, "position: " + position + "   size:" + mTemplateDayIds.size());
                     mRoutineDayId = mTemplateDayIds.get(position);
-                    new CreateRoutineDayTask(mRoutineDayId, true).execute();
+                    new CreateRoutineDayTask(mRoutineDayId).execute();
                 }
                 else {
                     mIsInitialSpinnerSelection = false;
@@ -723,7 +723,7 @@ public class RoutineDayPageFragment extends Fragment {
                         FragmentManager manager = getFragmentManager();
 
                         NumberPickerFragment dialog = NumberPickerFragment.newInstance(mCurrentExerciseSet.getTargetWeight(),
-                                0, 9999, "lbs", "Target Weight:"); // TODO; Remove hardcoded lbs and make flexible for both lbs and kg
+                                0, 5000, "lbs", "Target Weight:"); // TODO; Remove hardcoded lbs and make flexible for both lbs and kg
 
                         // we use setTargetFragment to later get the new number from the NumberPickerFragment (similar to startActivityForResult(..) used by Activities)
                         dialog.setTargetFragment (RoutineDayPageFragment.this, REQUEST_WEIGHT_NUMBER);
@@ -844,11 +844,9 @@ public class RoutineDayPageFragment extends Fragment {
     private class CreateRoutineDayTask extends AsyncTask<Void, Void, RoutineDay> {
 
         private int mRoutineDayId;
-        private boolean mUpdateToolbar;
 
-        public CreateRoutineDayTask (int routineId, boolean updateToolbar) {
+        public CreateRoutineDayTask (int routineId) {
             mRoutineDayId = routineId;
-            mUpdateToolbar = updateToolbar;
         }
 
         @Override
@@ -864,10 +862,7 @@ public class RoutineDayPageFragment extends Fragment {
                 mRoutineDayDate = mRoutineDay.getDate(); // Get the date for our global variable mRoutineDayDate
 
             updateUI();
-            if (mUpdateToolbar) {
-                Log.i(TAG, "updateToolbar() CALLED from Async");
-                updateToolbar();
-            }
+            updateToolbar();
         }
     }
 

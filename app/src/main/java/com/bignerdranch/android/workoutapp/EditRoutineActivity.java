@@ -8,20 +8,22 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.bignerdranch.android.workoutapp.global.BasicApp;
 import com.bignerdranch.android.workoutapp.global.DataRepository;
-import com.bignerdranch.android.workoutapp.model.Exercise;
 import com.bignerdranch.android.workoutapp.model.Routine;
 import com.bignerdranch.android.workoutapp.model.RoutineDay;
-import com.bignerdranch.android.workoutapp.model.Set;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
-public class EditRoutineActivity extends AppCompatActivity {
+public class EditRoutineActivity extends AppCompatActivity implements EditRoutineFragment.Callbacks {
 
     private static final String TAG = "EditRoutineActivity";
 
@@ -31,11 +33,15 @@ public class EditRoutineActivity extends AppCompatActivity {
     private DataRepository mDataRepository;
 
     private Routine mRoutine;
-    private List<RoutineDay> mRoutineDays;
-    private List<Integer> mRoutineDayIds;
+    private List<RoutineDay> mTemplateDays;
+    private ArrayList<Integer> mTemplateDayIds;
 
     private ViewPager mViewPager;
     private RoutineDayPagerAdapter mPagerAdapter;
+
+    // TEST THING
+    private LinkedHashSet<Fragment> mFragments = new LinkedHashSet<>();
+
 
 
     // For when we have a Routine we want to load
@@ -58,9 +64,6 @@ public class EditRoutineActivity extends AppCompatActivity {
 
         mViewPager = (ViewPager) findViewById(R.id.edit_routine_view_pager);
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        mViewPager.setAdapter(new RoutineDayPagerAdapter(fragmentManager));
-
         // Set current item to the first day in the list
         //mViewPager.setCurrentItem(0);
 
@@ -72,9 +75,6 @@ public class EditRoutineActivity extends AppCompatActivity {
     private Routine createRoutineObject (int routineId) { // TODO: need to abstract all this object creation code - currently repeating way too much code
         Routine activeRoutine = null;
 
-        // Initialize our list of RoutineDayIds
-        mRoutineDayIds = new ArrayList<>();
-
         activeRoutine = mDataRepository.loadRoutine(routineId);
 
         // Get RoutineDays
@@ -83,6 +83,11 @@ public class EditRoutineActivity extends AppCompatActivity {
             return null;
         }
         activeRoutine.addRoutineDays(routineDays);
+
+        mTemplateDayIds = new ArrayList<>();
+        for (RoutineDay templateDay : routineDays) {
+            mTemplateDayIds.add(templateDay.getId()); // add the template day IDs to our EditRoutineActivity global list
+        }
 
         return activeRoutine;
     }
@@ -99,6 +104,38 @@ public class EditRoutineActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onAddRoutineDayClicked() {
+        RoutineDay routineDay = new RoutineDay();
+        routineDay.setRoutineId(mRoutine.getId());
+        routineDay.setDayNumber(mTemplateDayIds.size()+1);
+        routineDay.setDate(null);
+        routineDay.setCompleted(false);
+        routineDay.setTemplate(true);
+
+        new InsertNewTemplateDayTask(routineDay).execute();
+    }
+
+    @Override
+    public void onDeleteRoutineDayClicked (RoutineDay routineDay) {
+        new DeleteTemplateDayTask(routineDay, mTemplateDays, mTemplateDayIds).execute();
+    }
+
+    @Override
+    public List<RoutineDay> getTemplateDays() {
+        return mTemplateDays;
+    }
+
+    @Override
+    public void addFragment (Fragment fragment) {
+        mFragments.add(fragment);
+    }
+
+    @Override
+    public void removeFragment (Fragment fragment) {
+        mFragments.remove(fragment);
+    }
+
     private class RoutineDayPagerAdapter extends FragmentStatePagerAdapter {
 
         public RoutineDayPagerAdapter (FragmentManager fm) {
@@ -107,18 +144,25 @@ public class EditRoutineActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem (int position) {
-            RoutineDay routineDay = mRoutineDays.get(position);
-            return EditRoutineFragment.newInstance(routineDay.getId());
+            RoutineDay routineDay = mTemplateDays.get(position);
+            return EditRoutineFragment.newInstance(routineDay.getId(), mTemplateDayIds, mRoutine.getName());
         }
 
         @Override
         public int getCount() {
-            return mRoutineDays.size();
+            return mTemplateDays.size();
         }
 
         @Override
         public CharSequence getPageTitle (int position) {
-            return "Day " + (position + 1);
+            return "DAY " + (position + 1);
+        }
+
+        /* We need this for the issue of the Adapter not working properly when we delete Template Days/Fragments discussed here: https://stackoverflow.com/q/10396321/7648952
+           - solution found here: https://stackoverflow.com/a/10399127/7648952 */
+        @Override
+        public int getItemPosition (Object object) {
+            return PagerAdapter.POSITION_NONE;
         }
     }
 
@@ -139,7 +183,161 @@ public class EditRoutineActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute (Routine routine) {
             mRoutine = routine;
+            mTemplateDays = mRoutine.getRoutineDays();
+
             updatePagerAdapter();
         }
+    }
+
+    private class InsertNewTemplateDayTask extends AsyncTask<Void, Void, Long> {
+
+        private RoutineDay mTemplateDay;
+
+        public InsertNewTemplateDayTask (RoutineDay templateDay) {
+            mTemplateDay = templateDay;
+        }
+
+        @Override
+        protected Long doInBackground (Void... params) {
+            return mDataRepository.insertRoutineDay(mTemplateDay);
+        }
+
+        @Override
+        protected void onPostExecute (Long templateDayId) {
+            mTemplateDay.setId(templateDayId.intValue());
+
+            mTemplateDays.add(mTemplateDay);
+            mTemplateDayIds.add(mTemplateDay.getId());
+
+            updatePagerAdapter();
+            mViewPager.setCurrentItem(mTemplateDays.size()-1);
+        }
+    }
+
+    private class DeleteTemplateDayTask extends AsyncTask<Void, Void, List<RoutineDay>> {
+
+        private RoutineDay mTemplateDay;
+        private List<RoutineDay> mTemplateDays;
+        private ArrayList<Integer> mTemplateDayIds;
+        private int mDeletedItemIndex;
+
+        public DeleteTemplateDayTask (RoutineDay routineDay, List<RoutineDay> templateDays, ArrayList<Integer> templateDayIds) {
+            mTemplateDay = routineDay;
+            mTemplateDays = templateDays;
+            mTemplateDayIds = templateDayIds;
+        }
+
+        @Override
+        protected List<RoutineDay> doInBackground (Void... params) {
+            mDeletedItemIndex = mTemplateDay.getDayNumber()-1;
+            Log.i (TAG, "Delete index: " + mDeletedItemIndex);
+
+            // Delete the template day from the DB
+            mDataRepository.deleteRoutineDay(mTemplateDay);
+
+            // Update the day numbers for the remaining Template Days
+            for (int i=(mDeletedItemIndex+1); i<mTemplateDays.size(); i++) {
+                RoutineDay templateDay = mTemplateDays.get(i);
+                templateDay.setDayNumber(i);
+                // Update those template days in the DB
+                mDataRepository.updateRoutineDay(templateDay);
+            }
+
+            // Remove the template day from the List of template days and the List of their IDs
+            mTemplateDays.remove(mDeletedItemIndex);
+            mTemplateDayIds.remove(mDeletedItemIndex);
+
+            for (RoutineDay rd : mTemplateDays) {
+                Log.i (TAG, "day #: " + rd.getDayNumber());
+            }
+
+            return mTemplateDays;
+        }
+
+        @Override
+        protected void onPostExecute (List<RoutineDay> templateDays) {
+            EditRoutineActivity.this.mTemplateDays = templateDays;
+            EditRoutineActivity.this.mTemplateDayIds = mTemplateDayIds;
+
+            // Check if we've deleted all the template days and there are now non remaining
+            if (templateDays.size() != 0) {
+
+                /*FragmentStatePagerAdapter fragmentPagerAdapter = (FragmentStatePagerAdapter) mViewPager.getAdapter();
+
+                for(int i = 0; i < fragmentPagerAdapter.getCount(); i++) {
+                    String name = makeFragmentName(mViewPager.getId(), i);
+                    Fragment viewPagerFragment = getSupportFragmentManager().findFragmentByTag(name);
+
+                    if(viewPagerFragment != null) {
+                        Log.i (TAG, "Found fragment position: " + i);
+                        ChangeableRoutineDayDay editRoutineFragment = (ChangeableRoutineDayDay) viewPagerFragment;
+                        RoutineDay routineDay = editRoutineFragment.getRoutineDay();
+                        if (routineDay.getDayNumber() > mDeletedItemIndex)
+                            editRoutineFragment.setRoutineDayDay(routineDay.getDayNumber()-1);
+
+                        // Do something with your Fragment
+                        if (viewPagerFragment.isResumed()) {
+                            // Interact with any views/data that must be alive
+                        }
+                        else {
+                            // Flag something for update later, when this viewPagerFragment
+                            // returns to onResume
+                        }
+                    }
+
+
+                }*/
+
+
+                for (Fragment fragment : mFragments) {
+
+                    if(fragment != null) {
+                        Log.i(TAG, "Found fragment id: " + fragment.getId());
+                        ChangeableRoutineDayDay editRoutineFragment = (ChangeableRoutineDayDay) fragment;
+                        RoutineDay routineDay = editRoutineFragment.getRoutineDay();
+                        if (routineDay != null) {
+                            if ((routineDay.getDayNumber() - 1) > mDeletedItemIndex)
+                                editRoutineFragment.setRoutineDayDay(routineDay.getDayNumber() - 1);
+                        }
+                    }
+                }
+
+                updatePagerAdapter();
+                if (mDeletedItemIndex == templateDays .size()) {
+                    mViewPager.setCurrentItem(mDeletedItemIndex - 1);
+                } else {
+                    mViewPager.setCurrentItem(mDeletedItemIndex);
+                }
+            }
+            else {
+                // We just deleted the last template day - so we also delete the Routine
+                //new Thread(() -> { mDataRepository.deleteRoutine(mRoutine); }).start();
+                new DeleteRoutineTask(mRoutine).execute();
+            }
+        }
+    }
+
+    private class DeleteRoutineTask extends AsyncTask<Void, Void, Void> {
+
+        private Routine mRoutine;
+
+        public DeleteRoutineTask (Routine routine) {
+            mRoutine = routine;
+        }
+
+        @Override
+        protected Void doInBackground (Void... params) {
+            mDataRepository.deleteRoutine(mRoutine);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute (Void result) {
+            onBackPressed();
+        }
+    }
+
+    private static String makeFragmentName(int viewId, int position) {
+        return "android:switcher:" + viewId + ":" + position;
     }
 }

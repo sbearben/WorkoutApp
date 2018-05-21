@@ -2,6 +2,7 @@ package com.bignerdranch.android.workoutapp.database.dao;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
+import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
@@ -23,5 +24,11 @@ public interface RoutineDao {
     void insertAllRoutines(List<Routine> routines);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertRoutine(Routine routine);
+    long insertRoutine(Routine routine);
+
+    @Delete
+    public void deleteRoutine (Routine routine);
+
+    @Delete
+    public void deleteRoutines(Routine... routines);
 }

@@ -16,7 +16,7 @@
         android:layout_marginBottom="10dp"
         android:lineSpacingExtra="4dp"
         android:textSize="16sp"
-        android:text="There is an ongoing workout. Continuing without saving will delete it."/>
+        android:text="@string/new_routineday_dialog_message"/>
 
     <CheckBox
         android:id="@+id/dialog_ongoing_routineday_checkbox"
@@ -25,6 +25,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="14sp"
-        android:text="Save ongoing workout day" />
+        android:text="@string/new_routineday_dialog_checkbox" />
 
 </LinearLayout>

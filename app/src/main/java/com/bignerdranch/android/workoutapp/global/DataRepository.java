@@ -49,8 +49,16 @@ public class DataRepository {
         mDatabase.routineDao().insertAllRoutines(routines);
     }
 
-    public void insertRoutine (final Routine routine) {
-        mDatabase.routineDao().insertRoutine(routine);
+    public long insertRoutine (final Routine routine) {
+        return mDatabase.routineDao().insertRoutine(routine);
+    }
+
+    public void deleteRoutine (final Routine routine) {
+        mDatabase.routineDao().deleteRoutine(routine);
+    }
+
+    public void deleteRoutines (final Routine... routines) {
+        mDatabase.routineDao().deleteRoutines(routines);
     }
 
     /**
@@ -100,7 +108,7 @@ public class DataRepository {
         mDatabase.routineDayDao().deleteRoutineDay(routineDay);
     }
 
-    public void deleteRoutineDays (final RoutineDay routineDays) {
+    public void deleteRoutineDays (final RoutineDay... routineDays) {
         mDatabase.routineDayDao().deleteRoutineDays(routineDays);
     }
 

@@ -1,5 +1,6 @@
 package com.bignerdranch.android.workoutapp;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
@@ -21,15 +23,20 @@ import android.widget.TextView;
 import com.bignerdranch.android.workoutapp.global.BasicApp;
 import com.bignerdranch.android.workoutapp.global.DataRepository;
 import com.bignerdranch.android.workoutapp.model.Routine;
+import com.bignerdranch.android.workoutapp.model.RoutineDay;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 
 public class RoutineListFragment extends Fragment {
 
     private static final String TAG = "RoutineListFragment";
+
+    private static final String DIALOG_NEW_ROUTINE = "DialogNewRoutine";
+    private static final int REQUEST_NEW_ROUTINE = 0;
 
     private DataRepository mDataRepository;
 
@@ -39,8 +46,6 @@ public class RoutineListFragment extends Fragment {
     private List<Routine> mRoutines;
 
     private FloatingActionButton mFloatingActionButton;
-
-
 
 
     public static RoutineListFragment newInstance() {
@@ -67,10 +72,12 @@ public class RoutineListFragment extends Fragment {
         // Initializing the FloatingActionButton
         mFloatingActionButton = v.findViewById(R.id.fab_new_routine);
         mFloatingActionButton.setOnClickListener((View view) -> {
-            // Add and go to new RoutineDay
-        });
+            FragmentManager manager = getFragmentManager();
+            NewRoutineFragment dialog = NewRoutineFragment.newInstance();
 
-        new GetRoutinesTask().execute();
+            dialog.setTargetFragment (RoutineListFragment.this, REQUEST_NEW_ROUTINE);
+            dialog.show (manager, DIALOG_NEW_ROUTINE);
+        });
 
         return v;
     }
@@ -81,6 +88,13 @@ public class RoutineListFragment extends Fragment {
 
         // Setup our custom toolbar and Spinner
         init_toolbar(getActivity());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        new GetRoutinesTask().execute();
     }
 
     // Method to setup our custom toolbar and call the method init_spinner(..) in order to set up the spinner
@@ -107,6 +121,26 @@ public class RoutineListFragment extends Fragment {
             mAdapter.setRoutines(routines);
             mAdapter.notifyDataSetChanged();
         }
+    }
+
+    @Override
+    public void onActivityResult (int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+
+        if (requestCode == REQUEST_NEW_ROUTINE) {
+            String routineName = (String) data.getSerializableExtra(NewRoutineFragment.EXTRA_ROUTINE_NAME);
+            int numberDays = (int) data.getSerializableExtra(NewRoutineFragment.EXTRA_ROUTINE_DAYS);
+
+            Routine routine = new Routine();
+            routine.setName(routineName);
+            routine.setDateCreated(new Date());
+
+            new InsertNewRoutineTask(routine, numberDays).execute();
+        }
+
+        updateUI();
     }
 
     private class RoutineHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -144,8 +178,8 @@ public class RoutineListFragment extends Fragment {
         // Called when the user clicks on one of the items in the list (held in itemView, which is the View for the entire row)
         @Override
         public void onClick (View view) {
-            //Intent intent = EditRoutineActivity.newIntent(getActivity(), mRoutine.getId());
-            //startActivity (intent);
+            Intent intent = EditRoutineActivity.newIntent(getActivity(), mRoutine.getId());
+            startActivity (intent);
         }
     }
 
@@ -193,6 +227,45 @@ public class RoutineListFragment extends Fragment {
         protected void onPostExecute (List<Routine> routines) {
             mRoutines = routines;
             updateUI();
+        }
+    }
+
+    private class InsertNewRoutineTask extends AsyncTask<Void, Void, Routine> {
+
+        private Routine mRoutine;
+        private int mNumberDays;
+
+        public InsertNewRoutineTask (Routine routine, int numberDays) {
+            mRoutine = routine;
+            mNumberDays = numberDays;
+        }
+
+        @Override
+        protected Routine doInBackground (Void... params) {
+            Long routineId = mDataRepository.insertRoutine(mRoutine);
+            mRoutine.setId(routineId.intValue());
+
+            // Create the new routine (template) days
+            for (int i=0; i<mNumberDays; i++) {
+                RoutineDay routineDay = new RoutineDay();
+                routineDay.setRoutineId(routineId.intValue());
+                routineDay.setDayNumber(i+1);
+                routineDay.setDate(null);
+                routineDay.setCompleted(false);
+                routineDay.setTemplate(true);
+
+                Long routineDayId = mDataRepository.insertRoutineDay(routineDay);
+                routineDay.setId(routineDayId.intValue());
+                mRoutine.addRoutineDay(routineDay);
+            }
+            return mRoutine;
+        }
+
+        @Override
+        protected void onPostExecute (Routine routine) {
+            // Start the EditRoutineActivity with our new Routine
+            Intent intent = EditRoutineActivity.newIntent(getActivity(), routine.getId());
+            startActivity (intent);
         }
     }
 
