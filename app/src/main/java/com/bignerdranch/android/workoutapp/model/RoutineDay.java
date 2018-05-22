@@ -11,6 +11,7 @@ import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.RoutineDayTa
 import com.bignerdranch.android.workoutapp.database.WorkoutDbSchema.RoutineTable;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -168,7 +169,7 @@ public class RoutineDay implements Copyable<RoutineDay> {
         return null;
     }
 
-    // Method that returns a boolean depending on if any of the Sets in the Exercises of the RoutineDay are "non-null" aka have any sets been performed or is this a new RoutineDau
+    // Method that returns a boolean depending on if any of the Sets in the Exercises of the RoutineDay are "non-null" aka have any sets been performed or is this a new RoutineDay
     public boolean isStarted() {
         for (Exercise exercise : this.getExercises()) {
             for (Set exerciseSet : exercise.getSets()) {
@@ -178,6 +179,24 @@ public class RoutineDay implements Copyable<RoutineDay> {
         }
 
         return false;
+    }
+
+    // Static method to create a properly formatted date String (for our usages) - currently used in RecentWorkoutsFragment.java and EditRoutineDayFragment.java
+    public static String createDateString (Date date, boolean showOngoing, boolean multiline) {
+        if (showOngoing) {
+            return "Ongoing";
+        }
+        String[] dayNames = {"Sun", "Mon", "Tues", "Weds", "Thurs", "Fri", "Sat"};
+        String[] monthNames = {"Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        int month = calendar.get(Calendar.MONTH);
+
+        return dayNames[dayOfWeek - 1] + (multiline ? "\n" : ", ") + day + " " + monthNames[month];
     }
 
     @Override

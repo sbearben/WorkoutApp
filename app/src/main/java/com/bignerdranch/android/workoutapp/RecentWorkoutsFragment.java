@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -14,7 +13,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.CardView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,11 +29,8 @@ import com.bignerdranch.android.workoutapp.model.ReppedSet;
 import com.bignerdranch.android.workoutapp.model.Routine;
 import com.bignerdranch.android.workoutapp.model.RoutineDay;
 import com.bignerdranch.android.workoutapp.model.Set;
-import com.bignerdranch.android.workoutapp.model.TimedSet;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,7 +110,7 @@ public class RecentWorkoutsFragment extends Fragment {
             // Set the CardView's onClickListner to open up the RoutineDay page if the routine day is clicked on
             recentWorkoutView.mCardView.setOnClickListener((View view) -> {
                 if (mRoutineDayIds != null) {
-                    Intent intent = RoutineDayPageActivity.newIntent(getActivity(), mRoutineDayIds.get(i_copy), mActiveRoutineTemplateDayIds, mActiveRoutine.getName());
+                    Intent intent = EditRoutineDayActivity.newIntent(getActivity(), mRoutineDayIds.get(i_copy), mActiveRoutineTemplateDayIds, mActiveRoutine.getName());
                     startActivity(intent);
                 }
             });
@@ -318,14 +313,14 @@ public class RecentWorkoutsFragment extends Fragment {
                                 new Thread(() -> { mDataRepository.deleteRoutineDay(ongoingRoutine); }).start();
                             }
 
-                            Intent intent = RoutineDayPageActivity.newIntent(getActivity(), templateDays.get(dayNumber_copy).getId(), templateDayIds, routineName);
+                            Intent intent = EditRoutineDayActivity.newIntent(getActivity(), templateDays.get(dayNumber_copy).getId(), templateDayIds, routineName);
                             startActivity(intent);
                         })
                         .setNegativeButton(R.string.new_routineday_dialog_negative_button, null)
                         .show();
             }
             else {
-                Intent intent = RoutineDayPageActivity.newIntent(getActivity(), templateDays.get(dayNumber_copy).getId(), templateDayIds, routineName);
+                Intent intent = EditRoutineDayActivity.newIntent(getActivity(), templateDays.get(dayNumber_copy).getId(), templateDayIds, routineName);
                 startActivity(intent);
             }
         });
@@ -349,7 +344,7 @@ public class RecentWorkoutsFragment extends Fragment {
                 }
 
                 // Create the date string, and set the TextView
-                String dateString = recentWorkoutView.createDateString(routineDay.getDate(), routineDay.isCompleted());
+                String dateString = RoutineDay.createDateString(routineDay.getDate(), !routineDay.isCompleted(), true);
                 recentWorkoutView.mDateTextView.setText(dateString);
 
                 //for (int j=0; j < routineDay.getExercises().size(); j++) {
@@ -425,24 +420,6 @@ public class RecentWorkoutsFragment extends Fragment {
 
         private int resIdGenerator (String suffix) {
             return getResources().getIdentifier(VIEW_ID_PREFIX + suffix, "id", getActivity().getPackageName());
-        }
-
-        // TODO: there's going to eventually be some logic here to potentially set this string to "Next" when we don't have completed or ongoing RoutineDay's
-        private String createDateString (Date date, boolean complete) {
-            if (!complete) {
-                return "Ongoing";
-            }
-            String[] dayNames = { "Sun", "Mon", "Tues", "Weds", "Thurs", "Fri", "Sat" };
-            String[] monthNames = { "Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sep", "Oct", "Nov", "Dec" };
-
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(date);
-
-            int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-            int day = calendar.get(Calendar.DAY_OF_MONTH);
-            int month = calendar.get(Calendar.MONTH);
-
-            return dayNames[dayOfWeek-1] + "\n" + day + " " + monthNames[month];
         }
 
         // TODO: This function hardcodes the set weights in pounds - eventually need to add flexibility for switch between pounds and kg and also TimedSets

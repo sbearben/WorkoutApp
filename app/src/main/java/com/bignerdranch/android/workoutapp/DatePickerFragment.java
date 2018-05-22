@@ -21,7 +21,7 @@ import java.util.GregorianCalendar;
 
 public class DatePickerFragment extends DialogFragment {
 
-    // Name of for the Extra that we're using to pass back the date we select from the DatePicker back to RoutineDayPageFragment
+    // Name of for the Extra that we're using to pass back the date we select from the DatePicker back to EditRoutineDayFragment
     public static final String EXTRA_DATE = "com.bignerdranch.android.workoutapp.date";
 
     private static final String ARG_DATE = "date";
@@ -73,7 +73,7 @@ public class DatePickerFragment extends DialogFragment {
             .create();
     }
 
-    // Used to send the result of the date we pick in the DatePicker back to RoutineDayPageFragment
+    // Used to send the result of the date we pick in the DatePicker back to EditRoutineDayFragment
     private void sendResult (int resultCode, Date date) {
         if (getTargetFragment() == null) {
             return;

@@ -32,24 +32,22 @@ import com.bignerdranch.android.workoutapp.global.BasicApp;
 import com.bignerdranch.android.workoutapp.global.DataRepository;
 import com.bignerdranch.android.workoutapp.model.Exercise;
 import com.bignerdranch.android.workoutapp.model.ReppedSet;
-import com.bignerdranch.android.workoutapp.model.Routine;
 import com.bignerdranch.android.workoutapp.model.RoutineDay;
 import com.bignerdranch.android.workoutapp.model.Set;
 import com.bignerdranch.android.workoutapp.model.TimedSet;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-public class RoutineDayPageFragment extends Fragment {
+public abstract class RoutineDayPageFragment extends Fragment {
 
     private static final String TAG = "RoutineDayPageFragment";
 
-    private static final String ARG_ROUTINEDAY_ID = "routineday_id";
-    private static final String ARG_TEMPLATE_DAY_IDS = "template_day_ids";
-    private static final String ARG_ROUTINE_NAME = "routine_name";
+    protected static final String ARG_ROUTINEDAY_ID = "routineday_id";
+    protected static final String ARG_TEMPLATE_DAY_IDS = "template_day_ids";
+    protected static final String ARG_ROUTINE_NAME = "routine_name";
 
     private static final String DIALOG_SETS_NUMBER = "DialogSetsNumber";
     private static final int REQUEST_SETS_NUMBER = 0;
@@ -63,10 +61,10 @@ public class RoutineDayPageFragment extends Fragment {
     private static final String DIALOG_NEW_EXERCISE = "DialogNewExercise";
     private static final int REQUEST_NEW_EXERCISE = 3;
 
-    private static final String DIALOG_ROUTINEDAY_DATE = "DialogRoutineDayDate";
-    private static final int REQUEST_ROUTINEDAY_DATE = 4;
+    protected static final String DIALOG_ROUTINEDAY_DATE = "DialogRoutineDayDate";
+    protected static final int REQUEST_ROUTINEDAY_DATE = 4;
 
-    private DataRepository mDataRepository;
+    protected DataRepository mDataRepository;
 
     private RecyclerView mExerciseRecyclerView;
     private ExerciseAdapter mAdapter;
@@ -79,32 +77,14 @@ public class RoutineDayPageFragment extends Fragment {
     private SquareButton mActualMeasurementButton; // Need this because at one point we need to update a button across methods (see onActivityResult(..))
     private TextView mTargetWeightTextView; // Need this because at one point we need to update a set's weight textview across methods (see onActivityResult(..))
 
-    private int mRoutineDayId, mLoadedRoutineDayId; // NOTE: THIS ID WON'T CHANGE THROUGHOUT THE LIFE OF THE FRAGMENT - WE USE mRoutineDay.getId() when we want the ID in the future
-    private RoutineDay mRoutineDay;
-    private ArrayList<Integer> mTemplateDayIds;
-    private String mRoutineName;
-    private Date mRoutineDayDate; // Need this due to complications with normal and template days, for the Date TextView in ToolBar
+    protected int mRoutineDayId, mLoadedRoutineDayId; // NOTE: THIS ID WON'T CHANGE THROUGHOUT THE LIFE OF THE FRAGMENT - WE USE mRoutineDay.getId() when we want the ID in the future
+    protected RoutineDay mRoutineDay;
+    protected ArrayList<Integer> mTemplateDayIds;
+    protected String mRoutineName;
+    protected Date mRoutineDayDate; // Need this due to complications with normal and template days, for the Date TextView in ToolBar
 
-    // The Views contained in our custom ToolBar
-    private TextView mRoutineNameTextView;
-    private AppCompatSpinner mRoutineDaySpinner;
-    private TextView mRoutineDayDateTextView;
-    private TextView mRoutineDayDoneTextView;
+    protected boolean mIsInitialSpinnerSelection = true; // boolean to make sure the Spinner callback onItemSelected doesn't execute its contained code when we initialize its first item with setSelection()
 
-    private boolean mIsInitialSpinnerSelection = true; // boolean to make sure the Spinner callback onItemSelected doesn't execute its contained code when we initialize its first item with setSelection()
-    private final Object lock = new Object(); // https://stackoverflow.com/a/5861918/7648952
-
-
-    public static RoutineDayPageFragment newInstance(int routineDayId, ArrayList<Integer> templateDayIds, String routineName) {
-        Bundle args = new Bundle();
-        args.putSerializable(ARG_ROUTINEDAY_ID, routineDayId);
-        args.putSerializable(ARG_TEMPLATE_DAY_IDS, templateDayIds);
-        args.putSerializable(ARG_ROUTINE_NAME, routineName);
-
-        RoutineDayPageFragment fragment = new RoutineDayPageFragment();
-        fragment.setArguments(args);
-        return fragment;
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -131,10 +111,6 @@ public class RoutineDayPageFragment extends Fragment {
 
         mIsInitialSpinnerSelection = true;
 
-        /* Background AsynTask that calls createRoutineDayObject(mRoutineDayId) on the background thread and assigns
-           the returned RoutineDay to mRoutineDay, then calls updateUI() */
-        //new CreateRoutineDayTask(mRoutineDayId, false).execute();
-
         return v;
     }
 
@@ -147,36 +123,16 @@ public class RoutineDayPageFragment extends Fragment {
         new CreateRoutineDayTask(mRoutineDayId).execute();
     }
 
+    // Abstract class that subclasses must implement that determines what gets done when the fragment lifecycle method onPause() is called
+    public abstract void onPauseActionsPerformed();
+
     /* We want to write the RoutineDay back to the Db when onPause() is called. The tutorial located in the following link suggests
        this is the best place to do that: https://www.tutorialspoint.com/android/android_fragments.htm
        - and frankly calling it here was the only way that worked properly for my needs of the previous fragment getting the updated data */
     @Override
     public void onPause() {
         super.onPause();
-
-        synchronized (lock) { // Not sure if this is necessary - see comment below in onOptionsItemSelected(..) for the Delete Routine Day menu item
-            if (mRoutineDay != null) {
-
-                if (mRoutineDay.isCompleted()) {
-                    new WriteRoutineDayTask(mRoutineDay).execute();
-                }
-                else if (mRoutineDay.isTemplate()) {
-                    if (mRoutineDay.isStarted()) {
-                        // if we have a template day, copy it and save the new RoutineDay - set isComplete to false
-                        RoutineDay routineDay = mRoutineDay.createDeepCopy();
-                        routineDay.setCompleted(false);
-                        routineDay.setTemplate(false);
-                        routineDay.setDate(mRoutineDayDate);
-
-                        mRoutineDay = routineDay;
-                        new WriteRoutineDayTask(mRoutineDay).execute();
-                    }
-                    else {
-                        // don't save anything
-                    }
-                }
-            }
-        }
+        onPauseActionsPerformed();
     }
 
     @Override
@@ -184,6 +140,9 @@ public class RoutineDayPageFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_routineday_page, menu);
     }
+
+    // Abstract class that subclasses must implement that determines what gets done when the delete_routine menu item is selected
+    public abstract void onDeleteRoutineDayMenuItemSelected();
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -197,119 +156,19 @@ public class RoutineDayPageFragment extends Fragment {
                 dialog.show (manager, DIALOG_NEW_EXERCISE);
                 return true;
             case R.id.delete_routineday:
-                if (!mRoutineDay.isTemplate()) { // Check to make sure the RoutineDay we have loaded isn't a template day, so that we don't accidentally delete a template
-                    new Thread(() -> {
-                        synchronized (lock) { // Think I might need this to ensure that this completes and mRoutineDay is set null before the code in onPause() runs
-                            mDataRepository.deleteRoutineDay(mRoutineDay);
-                            mRoutineDay = null;
-                        }
-                    }).start();
-                }
-                getActivity().onBackPressed();
+                onDeleteRoutineDayMenuItemSelected();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    // Method to setup our custom toolbar and call the method init_spinner(..) in order to set up the spinner
+    // Abstract method to setup/initialize the fragment's custom toolbar - if any
     @SuppressLint("RestrictedApi") // without this we get an error calling setDefaultDisplayHomeAsUpEnabled(true) - solution found here: https://stackoverflow.com/a/44926919/7648952
-    private void init_toolbar (Context context) {
-        ActionBar actionBar = ((AppCompatActivity) context).getSupportActionBar();
-        View actionBarView;
+    public abstract void init_toolbar (Context context);
 
-        // Set up our custom toolbar
-        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-        actionBar.setCustomView(R.layout.actionbar_routineday_page);
-        actionBar.setDefaultDisplayHomeAsUpEnabled(true); // Make sure we show the home (up) button (NOTE: THIS ISN'T WORKING)
-
-        actionBarView = actionBar.getCustomView(); // Get a reference to the custom toolbar view we just inflated
-
-        // ********** Set up the TextView that holds the Routine name of the RoutineDay
-        mRoutineNameTextView = (TextView) actionBarView.findViewById(R.id.actionbar_routineday_name_textview);
-
-        // ********** Set up the RoutineDay spinner
-        mRoutineDaySpinner = (AppCompatSpinner) actionBarView.findViewById(R.id.actionbar_routineday_day_spinner);
-        List<String> spinnerDayNames = new ArrayList<>(); // List that holds the String List of day names (Day 1, Day 2, etc...)
-        for (int i=0; i<mTemplateDayIds.size(); i++) {
-            spinnerDayNames.add("Day " + (i+1));
-        }
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String> (context, R.layout.simple_spinner_item, spinnerDayNames);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mRoutineDaySpinner.setAdapter(adapter);
-
-        // Item selection listener for the Spinner
-        mRoutineDaySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.i (TAG, "onItemSelected() CALLED");
-                if (!mIsInitialSpinnerSelection) {
-                    //Log.i(TAG, "position: " + position + "   size:" + mTemplateDayIds.size());
-                    mRoutineDayId = mTemplateDayIds.get(position);
-                    new CreateRoutineDayTask(mRoutineDayId).execute();
-                }
-                else {
-                    mIsInitialSpinnerSelection = false;
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
-
-        // ********** Set up the TextView that holds the RoutineDay date (also will be a button that launches a DatePicker DialogFragment
-        mRoutineDayDateTextView = (TextView) actionBarView.findViewById(R.id.actionbar_routineday_date_textview);
-
-        mRoutineDayDateTextView.setOnClickListener((View v) -> {
-            FragmentManager manager = getFragmentManager();
-            DatePickerFragment dialog = DatePickerFragment.newInstance(mRoutineDayDate);
-
-            dialog.setTargetFragment (RoutineDayPageFragment.this, REQUEST_ROUTINEDAY_DATE);
-            dialog.show (manager, DIALOG_ROUTINEDAY_DATE);
-        });
-
-        // ********** Set up the TextView that holds the DONE button
-        mRoutineDayDoneTextView = (TextView) actionBarView.findViewById(R.id.actionbar_routineday_done_textview);
-        mRoutineDayDoneTextView.setOnClickListener((View v) -> {
-            if (mRoutineDay.isTemplate()) {
-                RoutineDay routineDay = mRoutineDay.createDeepCopy();
-                routineDay.setCompleted(true);
-                routineDay.setTemplate(false);
-                routineDay.setDate(mRoutineDayDate);
-
-                if (!isTemplateId(mLoadedRoutineDayId)) // If the ORIGINAL RoutineDay that was loaded was a non template day (ie it was a completed day), we set its ID back on the RoutineDay we're about to save
-                    routineDay.setId(mLoadedRoutineDayId);
-
-                /* We set mRoutineDay to routineDay so that when we end the Fragment/Acitivity in the call to getActivity().onBackPressed()
-                   below, the new routineDay will be written to the Db in onPause() through the WriteRoutineDayTask Async */
-                mRoutineDay = routineDay;
-            }
-            getActivity().onBackPressed();
-        });
-        mRoutineDayDoneTextView.setVisibility(View.GONE); // Initially hide the Done TextView
-
-        //updateToolbar();
-    }
-
-    // To refresh the Views contained in the Toolbar
-    public void updateToolbar() {
-        mRoutineNameTextView.setText(mRoutineName);
-
-        /*** NOTE ***: I was having issues with onItemSelected() being called twice sometimes randomly (and once other times); using
-         * this two argument setSelection call with false as the second argument fixed it for some reason
-         * Solution found: https://stackoverflow.com/a/30253459/7648952 */
-        mRoutineDaySpinner.setSelection(mRoutineDay.getDayNumber()-1, false); // Set the active routine as the selected item of the spinner
-
-        // Display today's date if this is a RoutineDay without a date set (aka a new day)
-        if (mRoutineDayDate == null) {
-            mRoutineDayDate = new Date();
-        }
-        mRoutineDayDateTextView.setText(createDateString(mRoutineDayDate));
-
-        mRoutineDayDoneTextView.setVisibility((mRoutineDay.isCompleted() || mRoutineDay.isStarted()) ? View.VISIBLE : View.GONE);
-    }
+    // Abstract method to update the fragment's custom toolbar - if any
+    public abstract void updateToolbar();
 
     // This method, amongst other things, connects the Adapter to our RecyclerView
     public void updateUI() {
@@ -435,30 +294,6 @@ public class RoutineDayPageFragment extends Fragment {
         }
     }
 
-    // Write our RoutineDay object back to the DB when we back out of the fragment (or the fragment view is destroyed)
-    /* private void writeRoutineDayObject (RoutineDay routineDay) {
-
-        mDataRepository.insertRoutineDay(routineDay);
-
-        List<Exercise> dayExercises = routineDay.getExercises();
-        mDataRepository.insertExercises(dayExercises);
-
-        // Get sets in Exercises
-        for (Exercise exercise : routineDay.getExercises()) {
-            List<Set> exerciseSets = exercise.getSets();
-            if (exercise.getType().equals(Exercise.REPPED)) {
-                // Solution to cast list of supertype List<Set> to list of subtype List<ReppedSet> found here:
-                // - https://stackoverflow.com/a/933600/7648952
-                List<ReppedSet> reppedSets = (List<ReppedSet>)(List<?>) exerciseSets;
-                mDataRepository.insertReppedSets(reppedSets);
-            }
-            else {
-                List<TimedSet> timedSets = (List<TimedSet>)(List<?>) exerciseSets;
-                mDataRepository.insertTimedSets(timedSets);
-            }
-        }
-    } */
-
     // For getting the results back from the Picker Dialogs
     @Override
     public void onActivityResult (int requestCode, int resultCode, Intent data) {
@@ -578,35 +413,14 @@ public class RoutineDayPageFragment extends Fragment {
         }
     }
 
-    private boolean isTemplateId (int routineDayId) {
-        for (int id : mTemplateDayIds) {
-            if (routineDayId == id)
-                return true;
-        }
-        return false;
-    }
+    // Abstract method that determines what the fragment wants to do when the ActualMeasurementButton is clicked (bit of misnomer since the click doesn't necessarily always modify the set's actualMeasurement field)
+    public abstract View.OnClickListener actualMeasurementButtonClick (Exercise exercise, ExerciseViews.SetViews setViews, int setIndex, boolean setExists);
 
-    private String createDateString (Date date) { // TODO: this is mostly repeat code from RecentWorkoutFragments - should probably abstract (maybe into RoutineDay.java)
-        String[] dayNames = { "Sun", "Mon", "Tues", "Weds", "Thurs", "Fri", "Sat" };
-        String[] monthNames = { "Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sep", "Oct", "Nov", "Dec" };
+    // Abstract method that determines what String we want displayed inside the actualMeasurementButtons (again, is a misnomer)
+    public abstract String actualButtonString (Set exerciseSet);
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-
-        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        int month = calendar.get(Calendar.MONTH);
-
-        return dayNames[dayOfWeek-1] + ", " + day + " " + monthNames[month];
-    }
-
-    private String actualButtonString (Set exerciseSet) {
-        return exerciseSet.actualMeasurementString();
-    }
-
-    private boolean actualButtonBackgroundChangeable() {
-        return true;
-    }
+    // Abstract method that determines whether we want the background of the actualMeasurementButtons to be changeable depending on if the set actual measurement field is null or not
+    public abstract boolean actualButtonBackgroundChangeable();
 
     // Define the ViewHolder that will inflate and own the list_item_exercise.xml layout
     private class ExerciseHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -650,8 +464,8 @@ public class RoutineDayPageFragment extends Fragment {
 
             // Set up our click listener for the number of sets
             mExerciseViews.mExerciseSetsTextView.setOnClickListener((View v) -> {
-                mCurrentExercise = exercise; // this is our RoutineDayPageFragment global exercise variable that we also need in onActivityResult(...)
-                mCurrentExerciseViews = mExerciseViews; // this is our RoutineDayPageFragment global ExerciseViews variable that we also need in onActivityResult(...)
+                mCurrentExercise = exercise; // this is our EditRoutineDayFragment global exercise variable that we also need in onActivityResult(...)
+                mCurrentExerciseViews = mExerciseViews; // this is our EditRoutineDayFragment global ExerciseViews variable that we also need in onActivityResult(...)
 
                 FragmentManager manager = getFragmentManager();
                 NumberPickerFragment dialog = NumberPickerFragment.newInstance(mExercise.getTargetNumberSets(),
@@ -678,23 +492,8 @@ public class RoutineDayPageFragment extends Fragment {
                     setViews.redrawDisabledViews();
                 }
 
-                // Set all of the button click listeners
-                setViews.mActualMeasurementButton.setOnClickListener((View v) -> { // TODO: this code is ugly and seems "anti object-oriented"
-                    if (setExists) { // Not sure if I need these check since the button should be disabled at this point if the set doesn't exist
-                        Set exerciseSet = mExercise.getSets().get(i_copy);
-
-                        if (exercise.getType().equals(Exercise.REPPED)) { // TODO: need to add TimedSet implementation
-                            ReppedSet reppedSet = (ReppedSet) exerciseSet;
-
-                            int new_value = (reppedSet.getActualMeasurement() == ReppedSet.ACTUAL_REPS_NULL) ? reppedSet.getTargetMeasurement() : reppedSet.getActualMeasurement()-1;
-                            reppedSet.setActualMeasurement(new_value);
-
-                            setViews.redrawEnabledViews(reppedSet, actualButtonString(reppedSet), actualButtonBackgroundChangeable());
-                            // TODO: need to start a timer here (Broadcast Intent?)
-                        }
-                        updateToolbar(); // Need to update toolbar since if we went from a Routineday that wasn't "started" to one that was, the Done button needs to appear
-                    }
-                });
+                // Use of abstract implementation of the onClickListener for mActualMeasurementButton
+                setViews.mActualMeasurementButton.setOnClickListener(actualMeasurementButtonClick(mExercise, setViews, i_copy, setExists));
 
                 // Set longClickListener on our set buttons
                 setViews.mActualMeasurementButton.setOnLongClickListener((View v) -> {
@@ -780,7 +579,7 @@ public class RoutineDayPageFragment extends Fragment {
     }
 
     // Inner class that holds all the Views in each ViewHolder in a structured way
-    private class ExerciseViews {
+    protected class ExerciseViews {
         private static final String VIEW_ID_PREFIX = "routineday_page_";
 
         private TextView mExerciseNameTextView;
@@ -807,7 +606,7 @@ public class RoutineDayPageFragment extends Fragment {
             //return mSetViews.size();
         }
 
-        private class SetViews {
+        protected class SetViews {
             private SquareButton mActualMeasurementButton;
             private TextView mTargetWeightTextView;
             private View mTargetWeightUnderlineView;
@@ -847,7 +646,7 @@ public class RoutineDayPageFragment extends Fragment {
     }
 
     // Create a background thread to perform the queries to create the RoutineDay object
-    private class CreateRoutineDayTask extends AsyncTask<Void, Void, RoutineDay> {
+    protected class CreateRoutineDayTask extends AsyncTask<Void, Void, RoutineDay> {
 
         private int mRoutineDayId;
 
@@ -873,7 +672,7 @@ public class RoutineDayPageFragment extends Fragment {
     }
 
     // Create a background thread to perform the queries to write the RoutineDay object to our Db
-    private class WriteRoutineDayTask extends AsyncTask<Void, Void, Void> {
+    protected class WriteRoutineDayTask extends AsyncTask<Void, Void, Void> {
 
         private RoutineDay mRoutineDay;
 

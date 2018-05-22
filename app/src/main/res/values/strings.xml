@@ -30,6 +30,11 @@
 
     <!-- EditRoutineFragment-->
     <string name="actionbar_edit_routine_title">Edit Routine</string>
+    <string name="delete_routine_dialog_title">Delete Routine?</string>
+    <string name="delete_routine_dialog_message">Deleting the last remaining workout day in the routine will also delete the routine and any past saved workouts.</string>
+    <string name="delete_routine_dialog_positive_button">Continue</string>
+    <string name="delete_routine_dialog_negative_button">Cancel</string>
+
 
     <!-- NewExerciseFragment strings -->
     <string name="new_exercise_title">Add Exercise:</string>

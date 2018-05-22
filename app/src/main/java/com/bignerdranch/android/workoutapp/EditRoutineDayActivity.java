@@ -6,7 +6,7 @@ import android.support.v4.app.Fragment;
 
 import java.util.ArrayList;
 
-public class RoutineDayPageActivity extends SingleFragmentActivity {
+public class EditRoutineDayActivity extends SingleFragmentActivity {
 
     private static final String EXTRA_ROUTINEDAY_ID = "com.bignerdranch.android.workoutapp.routineday_id";
     private static final String EXTRA_TEMPLATE_DAY_IDS = "com.bignerdranch.android.workoutapp.template_day_ids";
@@ -14,7 +14,7 @@ public class RoutineDayPageActivity extends SingleFragmentActivity {
 
 
     public static Intent newIntent (Context packageContext, int routineDayId, ArrayList<Integer> templateDayIds, String routineName) {
-        Intent intent = new Intent(packageContext, RoutineDayPageActivity.class);
+        Intent intent = new Intent(packageContext, EditRoutineDayActivity.class);
         intent.putExtra(EXTRA_ROUTINEDAY_ID, routineDayId);
         intent.putExtra(EXTRA_TEMPLATE_DAY_IDS, templateDayIds);
         intent.putExtra(EXTRA_ROUTINE_NAME, routineName);
@@ -27,6 +27,6 @@ public class RoutineDayPageActivity extends SingleFragmentActivity {
         ArrayList<Integer> templateDayIds = (ArrayList<Integer>) getIntent().getSerializableExtra(EXTRA_TEMPLATE_DAY_IDS);
         String routineName = (String) getIntent().getSerializableExtra(EXTRA_ROUTINE_NAME);
 
-        return RoutineDayPageFragment.newInstance(routineDayId, templateDayIds, routineName);
+        return EditRoutineDayFragment.newInstance(routineDayId, templateDayIds, routineName);
     }
 }
