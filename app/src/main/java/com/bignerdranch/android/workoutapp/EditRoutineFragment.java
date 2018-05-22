@@ -61,6 +61,9 @@ public class EditRoutineFragment extends Fragment implements ChangeableRoutineDa
     private static final String DIALOG_NEW_EXERCISE = "DialogNewExercise";
     private static final int REQUEST_NEW_EXERCISE = 3;
 
+    private static final String DIALOG_ROUTINEDAY_DATE = "DialogRoutineDayDate";
+    private static final int REQUEST_ROUTINEDAY_DATE = 4;
+
     private DataRepository mDataRepository;
 
     private RecyclerView mExerciseRecyclerView;
@@ -78,7 +81,7 @@ public class EditRoutineFragment extends Fragment implements ChangeableRoutineDa
     private RoutineDay mRoutineDay;
     private ArrayList<Integer> mTemplateDayIds;
     private String mRoutineName;
-    private Date mRoutineDayDate; // Need this due to complications with normal and template days, for the Date TextView in ToolBar
+    private Date mRoutineDayDate; // Need this due to complications with normal and template days, for the Date TextView in ToolBar (for RoutineDayPageFragment)
 
     private List<RoutineDay> mTemplateDays;
 
@@ -137,7 +140,6 @@ public class EditRoutineFragment extends Fragment implements ChangeableRoutineDa
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i (TAG, "onCreate() CALLED " + getId());
         setHasOptionsMenu(true); // let the FragmentManager know that this fragment needs to receive menu callbacks
 
         mRoutineDayId = (int) getArguments().getSerializable(ARG_ROUTINEDAY_ID);
@@ -154,7 +156,6 @@ public class EditRoutineFragment extends Fragment implements ChangeableRoutineDa
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_routineday_page, container, false);
-        Log.i (TAG, "onCreateView() CALLED " + getId());
 
         mExerciseRecyclerView = (RecyclerView) v.findViewById(R.id.routineday_page_recycler_view);
         mExerciseRecyclerView.setLayoutManager (new LinearLayoutManager(getActivity()));
@@ -196,7 +197,6 @@ public class EditRoutineFragment extends Fragment implements ChangeableRoutineDa
         super.onPause();
         Log.i (TAG, "onPause() CALLED " + getId());
         if (mRoutineDay != null) {
-            Log.i (TAG, "CALLEDDDDDDDD " + mRoutineDay.getDayNumber());
             new WriteRoutineDayTask(mRoutineDay).execute();
         }
     }
@@ -501,6 +501,14 @@ public class EditRoutineFragment extends Fragment implements ChangeableRoutineDa
             // Use an Async to insert our new Exercise, which will return its ID, the use that ID when we create its Sets in postExecute()
             new WriteNewExerciseTask(exercise).execute();
         }
+        else if (requestCode == REQUEST_ROUTINEDAY_DATE) {
+            Date date = (Date) data.getSerializableExtra (DatePickerFragment.EXTRA_DATE);
+            mRoutineDayDate = date;
+
+            if (!mRoutineDay.isTemplate())
+                mRoutineDay.setDate(mRoutineDayDate);
+            updateToolbar();
+        }
 
         updateUI();
     }
@@ -553,8 +561,8 @@ public class EditRoutineFragment extends Fragment implements ChangeableRoutineDa
         }
     }
 
-    private void actualButtonMeasurementClick (Exercise exercise, ExerciseViews.SetViews setViews, int setIndex, boolean setExists) {
-        setViews.mActualMeasurementButton.setOnClickListener((View v) -> { // TODO: this code is ugly and seems "anti object-oriented"
+    private View.OnClickListener actualButtonMeasurementClick (Exercise exercise, ExerciseViews.SetViews setViews, int setIndex, boolean setExists) {
+        return (View v) -> { // TODO: this code is ugly and seems "anti object-oriented"
             if (setExists) { // Not sure if I need these check since the button should be disabled at this point if the set doesn't exist
                 Set exerciseSet = exercise.getSets().get(setIndex);
 
@@ -564,14 +572,18 @@ public class EditRoutineFragment extends Fragment implements ChangeableRoutineDa
                     int new_value = (reppedSet.getTargetMeasurement() == ReppedSet.MIN_TARGET_REPS) ? ReppedSet.MAX_TARGET_REPS : reppedSet.getTargetMeasurement()-1;
                     reppedSet.setTargetMeasurement(new_value);
 
-                    setViews.redrawEnabledViews(reppedSet, actualButtonString(reppedSet));
+                    setViews.redrawEnabledViews(reppedSet, actualButtonString(reppedSet), actualButtonBackgroundChangeable());
                 }
             }
-        });
+        };
     }
 
     private String actualButtonString (Set exerciseSet) {
         return exerciseSet.targetMeasurementString();
+    }
+
+    private boolean actualButtonBackgroundChangeable() {
+        return false;
     }
 
     // Define the ViewHolder that will inflate and own the list_item_exercise.xml layout
@@ -637,7 +649,7 @@ public class EditRoutineFragment extends Fragment implements ChangeableRoutineDa
                    weight TextView (all proceeding set views will get the same treatment) */
                 if (setExists) {
                     Set exerciseSet = mExercise.getSets().get(i);
-                    setViews.redrawEnabledViews(exerciseSet, actualButtonString(exerciseSet));
+                    setViews.redrawEnabledViews(exerciseSet, actualButtonString(exerciseSet), actualButtonBackgroundChangeable());
                 }
                 // This set doesn't exist so we disable the set by changing its look
                 else {
@@ -645,7 +657,10 @@ public class EditRoutineFragment extends Fragment implements ChangeableRoutineDa
                 }
 
                 // Call our overriden method that sets the click listener for the set button
-                actualButtonMeasurementClick(mExercise, setViews, i_copy, setExists);
+                //actualButtonMeasurementClick(mExercise, setViews, i_copy, setExists);
+                setViews.mActualMeasurementButton.setOnClickListener(actualButtonMeasurementClick(mExercise, setViews, i_copy, setExists));
+
+
 
                 // Set longClickListener on our set buttons
                 setViews.mActualMeasurementButton.setOnLongClickListener((View v) -> {
@@ -765,12 +780,12 @@ public class EditRoutineFragment extends Fragment implements ChangeableRoutineDa
 
             private SetViews() { }
 
-            public void redrawEnabledViews (Set exerciseSet, String buttonString) {
+            public void redrawEnabledViews (Set exerciseSet, String buttonString, boolean changeableBackground) {
                 mActualMeasurementButton.setEnabled(true);
                 mActualMeasurementButton.setText(buttonString);
 
                 // Check if our set was performed or skipped
-                if (!exerciseSet.isSetNull()) {
+                if (!exerciseSet.isSetNull() || !changeableBackground) {
                     mActualMeasurementButton.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.button_exercise_set_performed));
                 }
                 // Our set is currently set to not performed (or skipped)

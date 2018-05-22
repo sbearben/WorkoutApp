@@ -518,14 +518,12 @@ public class RoutineDayPageFragment extends Fragment {
             // Use an Async to insert our new Exercise, which will return its ID, the use that ID when we create its Sets in postExecute()
             new WriteNewExerciseTask(exercise).execute();
         }
-
         else if (requestCode == REQUEST_ROUTINEDAY_DATE) {
             Date date = (Date) data.getSerializableExtra (DatePickerFragment.EXTRA_DATE);
             mRoutineDayDate = date;
 
             if (!mRoutineDay.isTemplate())
                 mRoutineDay.setDate(mRoutineDayDate);
-            Log.i(TAG, "updateToolbar() CALLED from onActivityReslt()");
             updateToolbar();
         }
 
@@ -602,6 +600,14 @@ public class RoutineDayPageFragment extends Fragment {
         return dayNames[dayOfWeek-1] + ", " + day + " " + monthNames[month];
     }
 
+    private String actualButtonString (Set exerciseSet) {
+        return exerciseSet.actualMeasurementString();
+    }
+
+    private boolean actualButtonBackgroundChangeable() {
+        return true;
+    }
+
     // Define the ViewHolder that will inflate and own the list_item_exercise.xml layout
     private class ExerciseHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
@@ -665,7 +671,7 @@ public class RoutineDayPageFragment extends Fragment {
                    weight TextView (all proceeding set views will get the same treatment) */
                 if (setExists) {
                     Set exerciseSet = mExercise.getSets().get(i);
-                    setViews.redrawEnabledViews(exerciseSet);
+                    setViews.redrawEnabledViews(exerciseSet, actualButtonString(exerciseSet), actualButtonBackgroundChangeable());
                 }
                 // This set doesn't exist so we disable the set by changing its look
                 else {
@@ -683,7 +689,7 @@ public class RoutineDayPageFragment extends Fragment {
                             int new_value = (reppedSet.getActualMeasurement() == ReppedSet.ACTUAL_REPS_NULL) ? reppedSet.getTargetMeasurement() : reppedSet.getActualMeasurement()-1;
                             reppedSet.setActualMeasurement(new_value);
 
-                            setViews.redrawEnabledViews(reppedSet);
+                            setViews.redrawEnabledViews(reppedSet, actualButtonString(reppedSet), actualButtonBackgroundChangeable());
                             // TODO: need to start a timer here (Broadcast Intent?)
                         }
                         updateToolbar(); // Need to update toolbar since if we went from a Routineday that wasn't "started" to one that was, the Done button needs to appear
@@ -808,12 +814,12 @@ public class RoutineDayPageFragment extends Fragment {
 
             private SetViews() { }
 
-            public void redrawEnabledViews (Set exerciseSet) {
+            public void redrawEnabledViews (Set exerciseSet, String buttonString, boolean changeableBackground) {
                 mActualMeasurementButton.setEnabled(true);
-                mActualMeasurementButton.setText(exerciseSet.actualMeasurementString());
+                mActualMeasurementButton.setText(buttonString);
 
                 // Check if our set was performed or skipped
-                if (!exerciseSet.isSetNull()) {
+                if (!exerciseSet.isSetNull() || !changeableBackground) {
                     mActualMeasurementButton.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.button_exercise_set_performed));
                 }
                 // Our set is currently set to not performed (or skipped)

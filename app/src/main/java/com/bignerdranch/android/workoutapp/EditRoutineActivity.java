@@ -18,7 +18,6 @@ import com.bignerdranch.android.workoutapp.global.DataRepository;
 import com.bignerdranch.android.workoutapp.model.Routine;
 import com.bignerdranch.android.workoutapp.model.RoutineDay;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -229,8 +228,8 @@ public class EditRoutineActivity extends AppCompatActivity implements EditRoutin
 
         @Override
         protected List<RoutineDay> doInBackground (Void... params) {
+            // Need the index of the day that we are deleting in our list of days
             mDeletedItemIndex = mTemplateDay.getDayNumber()-1;
-            Log.i (TAG, "Delete index: " + mDeletedItemIndex);
 
             // Delete the template day from the DB
             mDataRepository.deleteRoutineDay(mTemplateDay);
@@ -247,10 +246,6 @@ public class EditRoutineActivity extends AppCompatActivity implements EditRoutin
             mTemplateDays.remove(mDeletedItemIndex);
             mTemplateDayIds.remove(mDeletedItemIndex);
 
-            for (RoutineDay rd : mTemplateDays) {
-                Log.i (TAG, "day #: " + rd.getDayNumber());
-            }
-
             return mTemplateDays;
         }
 
@@ -261,47 +256,23 @@ public class EditRoutineActivity extends AppCompatActivity implements EditRoutin
 
             // Check if we've deleted all the template days and there are now non remaining
             if (templateDays.size() != 0) {
-
-                /*FragmentStatePagerAdapter fragmentPagerAdapter = (FragmentStatePagerAdapter) mViewPager.getAdapter();
-
-                for(int i = 0; i < fragmentPagerAdapter.getCount(); i++) {
-                    String name = makeFragmentName(mViewPager.getId(), i);
-                    Fragment viewPagerFragment = getSupportFragmentManager().findFragmentByTag(name);
-
-                    if(viewPagerFragment != null) {
-                        Log.i (TAG, "Found fragment position: " + i);
-                        ChangeableRoutineDayDay editRoutineFragment = (ChangeableRoutineDayDay) viewPagerFragment;
-                        RoutineDay routineDay = editRoutineFragment.getRoutineDay();
-                        if (routineDay.getDayNumber() > mDeletedItemIndex)
-                            editRoutineFragment.setRoutineDayDay(routineDay.getDayNumber()-1);
-
-                        // Do something with your Fragment
-                        if (viewPagerFragment.isResumed()) {
-                            // Interact with any views/data that must be alive
-                        }
-                        else {
-                            // Flag something for update later, when this viewPagerFragment
-                            // returns to onResume
-                        }
-                    }
-
-
-                }*/
-
-
+                // Iterate through our list of Fragments currently hosted by our Activity through ViewPager
                 for (Fragment fragment : mFragments) {
-
+                    // Make sure the fragment isn't null (I'm not sure if this is necessary - feel like it isn't)
                     if(fragment != null) {
-                        Log.i(TAG, "Found fragment id: " + fragment.getId());
+                        // Cast the fragment to the ChangeableRoutineDayDay interface type so that we can access the RoutineDay on the fragment
                         ChangeableRoutineDayDay editRoutineFragment = (ChangeableRoutineDayDay) fragment;
                         RoutineDay routineDay = editRoutineFragment.getRoutineDay();
+                        // Make sure the routineDay on the fragment hasn't been set to null as in the case for when we're deleting the day
                         if (routineDay != null) {
                             if ((routineDay.getDayNumber() - 1) > mDeletedItemIndex)
+                                // Changing the day number here will prevent us from rewriting the RoutineDay back to the DB in EditRoutineFragment in onPause()
                                 editRoutineFragment.setRoutineDayDay(routineDay.getDayNumber() - 1);
                         }
                     }
                 }
 
+                // Update the PagerAdapter and load up the correct RoutineDay
                 updatePagerAdapter();
                 if (mDeletedItemIndex == templateDays .size()) {
                     mViewPager.setCurrentItem(mDeletedItemIndex - 1);
@@ -333,11 +304,8 @@ public class EditRoutineActivity extends AppCompatActivity implements EditRoutin
 
         @Override
         protected void onPostExecute (Void result) {
+            // The Routine has been deleted since we deleted its last RoutineDay - therefore we fire off an onBackPressed() to go back to RoutineListFragment
             onBackPressed();
         }
-    }
-
-    private static String makeFragmentName(int viewId, int position) {
-        return "android:switcher:" + viewId + ":" + position;
     }
 }
