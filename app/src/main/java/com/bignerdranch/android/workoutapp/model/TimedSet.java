@@ -66,6 +66,11 @@ public class TimedSet extends Set<Date> {
         return true; // TODO: Implement this properly
     }
 
+    @Override
+    public void setActualMeasurementNull() {
+        setActualMeasurement(null); // TODO: Implement this properly (aka we need a constant such as TIMED_SET_NULL)
+    }
+
     private String dateToString (Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);

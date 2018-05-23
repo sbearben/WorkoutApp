@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
                     selectedFragment = RoutineListFragment.newInstance();
                     break;
                 case R.id.action_history:
+                    fragmentTag = "action_history";
+                    selectedFragment = RoutineHistoryFragment.newInstance();
                     break;
             }
 

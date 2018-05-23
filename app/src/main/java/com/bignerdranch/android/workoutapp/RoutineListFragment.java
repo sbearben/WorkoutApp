@@ -103,6 +103,7 @@ public class RoutineListFragment extends Fragment {
 
         // Restore the default toolbar
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
+        actionBar.setSubtitle(R.string.actionbar_routine_list_subtitle);
     }
 
     public void updateUI() {

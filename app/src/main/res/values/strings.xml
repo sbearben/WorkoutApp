@@ -21,7 +21,12 @@
     <string name="new_routineday_dialog_positive_button">Continue</string>
     <string name="new_routineday_dialog_negative_button">Cancel</string>
 
+    <!-- RoutineListFragment -->
     <string name="right_chevron_description">Right chevron</string>
+    <string name="actionbar_routine_list_subtitle">Routine List</string>
+
+    <!-- RoutineHistoryFragment -->
+    <string name="actionbar_routine_history_subtitle">History - %1$s</string>
 
     <!-- RoutineDayPageFragment -->
     <string name="routineday_done_text">Done</string>
@@ -34,7 +39,6 @@
     <string name="delete_routine_dialog_message">Deleting the last remaining workout day in the routine will also delete the routine and any past saved workouts.</string>
     <string name="delete_routine_dialog_positive_button">Continue</string>
     <string name="delete_routine_dialog_negative_button">Cancel</string>
-
 
     <!-- NewExerciseFragment strings -->
     <string name="new_exercise_title">Add Exercise:</string>

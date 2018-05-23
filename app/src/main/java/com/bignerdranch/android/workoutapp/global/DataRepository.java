@@ -72,8 +72,8 @@ public class DataRepository {
         return mDatabase.routineDayDao().getRoutineDay(routineDayId);
     }
 
-    public List<RoutineDay> loadAllRoutineDaysInRoutine (final int routineId) {
-        return mDatabase.routineDayDao().getAllRoutineDaysInRoutine(routineId);
+    public List<RoutineDay> loadAllCompletedRoutineDaysInRoutine (final int routineId) {
+        return mDatabase.routineDayDao().getAllCompletedRoutineDaysInRoutine(routineId);
     }
 
     public int loadMostRecentRoutineId() {

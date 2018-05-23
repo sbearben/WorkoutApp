@@ -68,8 +68,8 @@ public class EditRoutineDayFragment extends RoutineDayPageFragment {
     @Override
     public void onPauseActionsPerformed() {
         synchronized (lock) { // Not sure if this is necessary - see comment below in onOptionsItemSelected(..) for the Delete Routine Day menu item
-            if (mRoutineDay != null) {
 
+            if (mRoutineDay != null) {
                 if (mRoutineDay.isCompleted()) {
                     new WriteRoutineDayTask(mRoutineDay).execute();
                 }
@@ -171,8 +171,27 @@ public class EditRoutineDayFragment extends RoutineDayPageFragment {
                 routineDay.setTemplate(false);
                 routineDay.setDate(mRoutineDayDate);
 
-                if (!isTemplateId(mLoadedRoutineDayId, mTemplateDayIds)) // If the ORIGINAL RoutineDay that was loaded was a non template day (ie it was a completed day), we set its ID back on the RoutineDay we're about to save
+                /* This ensures that if we have loaded a previously completed RoutineDay and then switch its day (thus overwritting it with a template day),
+                   that we give it back the original completed RoutineDay ID so we don't create a completely new day */
+                if (!isTemplateId(mLoadedRoutineDayId, mTemplateDayIds)) { // If the ORIGINAL RoutineDay that was loaded was a non template day (ie it was a completed day), we set its ID back on the RoutineDay we're about to save
                     routineDay.setId(mLoadedRoutineDayId);
+                }
+                else { // If we arrive to this else statement, it means the user just clicked Done, aka is completing, a brand new RoutineDay (thus creating a new one in the DB)
+
+                    /* Here we want to create a copy of the template day, set all of its set's actualMeasurements to null, so that we can update the template
+                       day in the DB with the newest workout's format - aka the same exercises, sets, target weight, target reps (or time) for that day
+                       - this allows the user to base new RoutineDays on their most recent previous completed days */
+                    RoutineDay templateDay = mRoutineDay.createDeepCopy();
+                    templateDay.setId(mRoutineDay.getId());
+
+                    for (Exercise exercise : templateDay.getExercises()) {
+                        for (Set exerciseSet : exercise.getSets()) {
+                            exerciseSet.setActualMeasurementNull();
+                        }
+                    }
+                    // Write the updated templateDay back to the DB
+                    new WriteRoutineDayTask(templateDay).execute();
+                }
 
                 /* We set mRoutineDay to routineDay so that when we end the Fragment/Acitivity in the call to getActivity().onBackPressed()
                    below, the new routineDay will be written to the Db in onPause() through the WriteRoutineDayTask Async */

@@ -123,6 +123,9 @@ public abstract class Set<T> implements Copyable<Set> {
     // - if this returns true then the set was skipped, if not then the set was performed
     public abstract boolean isSetNull();
 
+    // Abstract method to set the actuMeasurement field of our Set to its null value (whatever we may be using to represent that for each set type)
+    public abstract void setActualMeasurementNull();
+
     public abstract Set createCopy();
 
     public abstract Set createDeepCopy();

@@ -67,6 +67,11 @@ public class ReppedSet extends Set<Integer> {
     }
 
     @Override
+    public void setActualMeasurementNull() {
+        setActualMeasurement(ACTUAL_REPS_NULL);
+    }
+
+    @Override
     public String toString() {
         return "ReppedSet: " + getId() + ", Parent Exercise Id: " + getExerciseId() + "\n" +
                 "\t" + "Set Number: " + getSetNumber() + ", Target Weight: " + getTargetWeight() + "\n" +

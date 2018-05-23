@@ -20,8 +20,11 @@ public interface RoutineDayDao {
     @Query("SELECT * FROM routine_days WHERE routine_day_id = :id")
     RoutineDay getRoutineDay (int id);
 
-    @Query("SELECT * FROM routine_days WHERE routine_id = :routineId")
-    List<RoutineDay> getAllRoutineDaysInRoutine (int routineId);
+    @Query("SELECT * " +
+            "FROM routine_days " +
+            "WHERE routine_id = :routineId AND routine_day_completed = 1 " +
+            "ORDER BY routine_day_date_performed DESC")
+    List<RoutineDay> getAllCompletedRoutineDaysInRoutine (int routineId);
 
     @Query("SELECT routine_id " +
             "FROM routine_days " +

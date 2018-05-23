@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/default_gray_clickable_selector">
+
+    <TextView
+        android:id="@+id/routine_history_routineday_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:textColor="@color/darkGray"
+        android:textSize="17sp"
+        android:lineSpacingExtra="4dp"
+        tools:text="Wednesday\nJuly 11, 2018"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/mediumLightGray"
+        style="?android:attr/listDivider"/>
+
+    <TextView
+        android:id="@+id/routine_history_routineday_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:textColor="@color/darkGray"
+        android:textSize="16sp"
+        android:lineSpacingExtra="5dp"/>
+
+</LinearLayout>
