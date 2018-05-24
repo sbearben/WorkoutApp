@@ -21,4 +21,16 @@ public class SharedPreferences {
                 .putInt(PREF_ACTIVE_ROUTINE_ID, activeRoutineId)
                 .apply();
     }
+
+    // This function will delete the saved routineId if it is the same as the activeRoutineId that is passed in as an argument
+    public static void deleteActiveRoutineId (Context context, int activeRoutineId) {
+        if (PreferenceManager.getDefaultSharedPreferences(context)
+                .getInt(PREF_ACTIVE_ROUTINE_ID, NO_ACTIVE_ROUTINE) == activeRoutineId) {
+
+            PreferenceManager.getDefaultSharedPreferences(context)
+                    .edit()
+                    .remove(PREF_ACTIVE_ROUTINE_ID)
+                    .apply();
+        }
+    }
 }

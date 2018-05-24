@@ -17,6 +17,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -85,8 +86,8 @@ public class RoutineHistoryFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        // Setup our custom toolbar (doing this in onPostExecute() in the Async now since the subtitle we're setting on the toolbar requires mRoutine to be instantiated)
-        //init_toolbar(getActivity());
+        // Setup our custom toolbar (also doing this in onPostExecute() in the Async now since the subtitle we're setting on the toolbar requires mRoutine to be instantiated)
+        init_toolbar(getActivity());
     }
 
     @Override
@@ -99,40 +100,43 @@ public class RoutineHistoryFragment extends Fragment {
     // Creates a full Routine object if all the required data exists
     private Routine createRoutineObject (int routineId) {
         Routine activeRoutine = null;
-        activeRoutine = mDataRepository.loadRoutine(routineId);
 
-        // Get all the RoutineDay in the Routine
-        List<RoutineDay> routineDays = mDataRepository.loadAllCompletedRoutineDaysInRoutine(routineId);
-        if (routineDays == null) {
-            return null;
-        }
-        activeRoutine.addRoutineDays(routineDays);
+        // Check that routineId is not set to SharedPreferences.NO_ACTIVE_ROUTINE
+        if (routineId != SharedPreferences.NO_ACTIVE_ROUTINE) {
+            activeRoutine = mDataRepository.loadRoutine(routineId);
 
-        // Get the Exercises for each RoutineDay
-        for (RoutineDay routineDay : activeRoutine.getRoutineDays()) {
-            // Get first three exercises for each day
-            List<Exercise> dayExercises = mDataRepository.loadAllExercisesInRoutineDay(routineDay.getId());
-            if (dayExercises == null) {
+            // Get all the RoutineDay in the Routine
+            List<RoutineDay> routineDays = mDataRepository.loadAllCompletedRoutineDaysInRoutine(routineId);
+            if (routineDays == null) {
                 return null;
             }
-            routineDay.addExercises(dayExercises);
+            activeRoutine.addRoutineDays(routineDays);
 
-            // Get sets in Exercises
-            for (Exercise exercise : routineDay.getExercises()) {
-                List<Set> exerciseSets;
-                if (exercise.getType().equals(Exercise.REPPED)) {
-                    // Solution to cast list of subtype List<ReppedSet> to list of supertype List<Set> found here:
-                    // - https://stackoverflow.com/a/933600/7648952
-                    exerciseSets = (List<Set>)(List<?>) mDataRepository.loadAllReppedExerciseSets(exercise.getId());
-                }
-                else {
-                    exerciseSets = (List<Set>)(List<?>) mDataRepository.loadAllTimedExerciseSets(exercise.getId());
-                }
-
-                if (exerciseSets == null) {
+            // Get the Exercises for each RoutineDay
+            for (RoutineDay routineDay : activeRoutine.getRoutineDays()) {
+                // Get first three exercises for each day
+                List<Exercise> dayExercises = mDataRepository.loadAllExercisesInRoutineDay(routineDay.getId());
+                if (dayExercises == null) {
                     return null;
                 }
-                exercise.addSets(exerciseSets);
+                routineDay.addExercises(dayExercises);
+
+                // Get sets in Exercises
+                for (Exercise exercise : routineDay.getExercises()) {
+                    List<Set> exerciseSets;
+                    if (exercise.getType().equals(Exercise.REPPED)) {
+                        // Solution to cast list of subtype List<ReppedSet> to list of supertype List<Set> found here:
+                        // - https://stackoverflow.com/a/933600/7648952
+                        exerciseSets = (List<Set>) (List<?>) mDataRepository.loadAllReppedExerciseSets(exercise.getId());
+                    } else {
+                        exerciseSets = (List<Set>) (List<?>) mDataRepository.loadAllTimedExerciseSets(exercise.getId());
+                    }
+
+                    if (exerciseSets == null) {
+                        return null;
+                    }
+                    exercise.addSets(exerciseSets);
+                }
             }
         }
 
@@ -145,12 +149,16 @@ public class RoutineHistoryFragment extends Fragment {
 
         // Restore the default toolbar
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
-        actionBar.setSubtitle(getString(R.string.actionbar_routine_history_subtitle, mRoutine.getName()));
+
+        if (mRoutine == null)
+            actionBar.setSubtitle(R.string.actionbar_routine_history_subtitle_noroutine);
+        else
+            actionBar.setSubtitle(getString(R.string.actionbar_routine_history_subtitle, mRoutine.getName()));
     }
 
     public void updateUI() {
         List<RoutineDay> routineDays = new ArrayList<>();
-        if (mRoutine.getRoutineDays() != null) {
+        if (mRoutine != null) {
             routineDays = mRoutine.getRoutineDays();
         }
 
@@ -178,13 +186,13 @@ public class RoutineHistoryFragment extends Fragment {
             super (inflater.inflate (R.layout.list_item_routine_history, parent, false));
 
             // This code is used to get the screen dimensions of the user's device
-            Point size = new Point();
-            WindowManager w = getActivity().getWindowManager();
-            w.getDefaultDisplay().getSize(size);
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            int width = displayMetrics.widthPixels;
 
             itemView.setOnClickListener (this);
             // Set the ViewHolder width to be a third of the screen size, and height to wrap content
-            itemView.setLayoutParams(new RecyclerView.LayoutParams(size.x/3, RecyclerView.LayoutParams.WRAP_CONTENT));
+            itemView.setLayoutParams(new RecyclerView.LayoutParams(width/3, RecyclerView.LayoutParams.WRAP_CONTENT));
 
             mDateTextView = (TextView) itemView.findViewById(R.id.routine_history_routineday_date);
             mDetailsTextView = (TextView) itemView.findViewById(R.id.routine_history_routineday_details);

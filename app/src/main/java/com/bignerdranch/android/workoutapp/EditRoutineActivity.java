@@ -304,6 +304,8 @@ public class EditRoutineActivity extends AppCompatActivity implements EditRoutin
 
         @Override
         protected void onPostExecute (Void result) {
+            // If the Routine we're deleting is currently the one saved in SharedPreferences, we its ID from being saved there
+            SharedPreferences.deleteActiveRoutineId(EditRoutineActivity.this, mRoutine.getId());
             // The Routine has been deleted since we deleted its last RoutineDay - therefore we fire off an onBackPressed() to go back to RoutineListFragment
             onBackPressed();
         }

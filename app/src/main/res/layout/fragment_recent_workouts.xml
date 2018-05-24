@@ -199,7 +199,7 @@
 
     <!-- The "Empty State Layer" that will be displayed when we have no routines -->
     <LinearLayout
-        android:id="@+id/empty_routines_view"
+        android:id="@+id/recent_workouts_empty_routines_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -213,7 +213,7 @@
             tools:textSize="20sp"/>
 
         <Button
-            android:id="@+id/empty_crimes_button"
+            android:id="@+id/recent_workouts_empty_crimes_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="@string/add_routine_button"/>

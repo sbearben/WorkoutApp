@@ -27,6 +27,7 @@
 
     <!-- RoutineHistoryFragment -->
     <string name="actionbar_routine_history_subtitle">History - %1$s</string>
+    <string name="actionbar_routine_history_subtitle_noroutine">History</string>
 
     <!-- RoutineDayPageFragment -->
     <string name="routineday_done_text">Done</string>

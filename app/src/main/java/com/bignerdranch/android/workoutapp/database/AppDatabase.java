@@ -74,8 +74,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     @Override
                     public void onCreate(@NonNull SupportSQLiteDatabase db) {
                         super.onCreate(db);
-                        Log.i(TAG, "DATABSE CREATED");
-                        executors.diskIO().execute(() -> {
+                        /*executors.diskIO().execute(() -> {
                             // Add a delay to simulate a long-running operation
                             // addDelay();
 
@@ -90,7 +89,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             insertData(database, routines, routineDays, exercises, reppedSets);
                             // notify that the database was created and it's ready to be used
                             database.setDatabaseCreated();
-                        });
+                        });*/
                     }
                 })
                 .build();

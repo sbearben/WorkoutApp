@@ -1,5 +1,6 @@
 package com.bignerdranch.android.workoutapp;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -8,11 +9,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.CardView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +34,7 @@ import com.bignerdranch.android.workoutapp.model.RoutineDay;
 import com.bignerdranch.android.workoutapp.model.Set;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +44,9 @@ public class RecentWorkoutsFragment extends Fragment {
 
     private static final String TAG = "RecentWorkoutsFragment";
     private static final int MAX_RECENT_WORKOUT_DAYS = 3;
+
+    private static final String DIALOG_NEW_ROUTINE = "DialogNewRoutine";
+    private static final int REQUEST_NEW_ROUTINE = 0;
 
     private DataRepository mDataRepository;
 
@@ -92,10 +99,19 @@ public class RecentWorkoutsFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_recent_workouts, container, false);
 
         // Get the Empty Routines view
-        mEmptyRoutinesView = (View) v.findViewById(R.id.empty_routines_view);
+        mEmptyRoutinesView = (View) v.findViewById(R.id.recent_workouts_empty_routines_view);
         if (mRoutines != null) {
             mEmptyRoutinesView.setVisibility(View.GONE);
         }
+
+        mEmptyRoutinesButton = (Button) v.findViewById(R.id.recent_workouts_empty_crimes_button);
+        mEmptyRoutinesButton.setOnClickListener((View view) -> {
+            FragmentManager manager = getFragmentManager();
+            NewRoutineFragment dialog = NewRoutineFragment.newInstance();
+
+            dialog.setTargetFragment (RecentWorkoutsFragment.this, REQUEST_NEW_ROUTINE);
+            dialog.show (manager, DIALOG_NEW_ROUTINE);
+        });
 
         mRecentWorkoutViews = new ArrayList<>();
 
@@ -375,7 +391,25 @@ public class RecentWorkoutsFragment extends Fragment {
         }
     }
 
-    private String getRoutineName (int routineId, List<Routine> routines) {
+    @Override
+    public void onActivityResult (int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+
+        if (requestCode == REQUEST_NEW_ROUTINE) {
+            String routineName = (String) data.getSerializableExtra(NewRoutineFragment.EXTRA_ROUTINE_NAME);
+            int numberDays = (int) data.getSerializableExtra(NewRoutineFragment.EXTRA_ROUTINE_DAYS);
+
+            Routine routine = new Routine();
+            routine.setName(routineName);
+            routine.setDateCreated(new Date());
+
+            //new RoutineListFragment.InsertNewRoutineTask(routine, numberDays).execute();
+        }
+    }
+
+        private String getRoutineName (int routineId, List<Routine> routines) {
         for (Routine routine : routines) {
             if (routine.getId() == routineId)
                 return routine.getName();
