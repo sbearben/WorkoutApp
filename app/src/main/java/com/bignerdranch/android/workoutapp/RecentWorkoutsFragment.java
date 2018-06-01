@@ -2,11 +2,13 @@ package com.bignerdranch.android.workoutapp;
 
 import android.app.Activity;
 import android.app.Application;
+import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -25,6 +27,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
+import com.bignerdranch.android.workoutapp.database.AppDatabase;
 import com.bignerdranch.android.workoutapp.global.BasicApp;
 import com.bignerdranch.android.workoutapp.global.DataRepository;
 import com.bignerdranch.android.workoutapp.model.Exercise;
@@ -81,16 +84,22 @@ public class RecentWorkoutsFragment extends Fragment {
         // Get our DataRepository so that we can easily execute our Db queries
         Application application = getActivity().getApplication();
         mDataRepository = ((BasicApp) application).getRepository();
+        AppDatabase appDatabase = ((BasicApp) application).getDatabase();
 
-        /*mRoutineIdNameMap = new LinkedHashMap<>();
-        mRoutines  = mDataRepository.loadRoutines();
-
-        // Create RoutineId/Name map used to easily flip between routines when the user uses the spinner
-        for (Routine routine : mRoutines) {
-            mRoutineIdNameMap.put(routine.getName(), routine.getId());
-        }
-
-        mActiveRoutineId = determineActiveRoutineId(mRoutines);*/
+        // Create the DB observer that updates the UI in the case where we're generating data for the DB
+        final Observer<Boolean> dbGeneratorObserver = (@Nullable final Boolean databaseGenerated) -> {
+            /* If we are generating data for the DB, when the data is generated mIsDatabaseCreated in AppDatabase will
+               be set to true, at which point the change of value will result in this method being called since we're
+               registered as an observer of mIsDatabaseCreated */
+            try {
+                if (databaseGenerated)
+                    new GetRoutinesTask().execute();
+            }
+            catch (NullPointerException e) {
+                Log.i (TAG, e.getMessage());
+            }
+        };
+        appDatabase.getDatabaseCreated().observe(this, dbGeneratorObserver);
     }
 
     @Override
@@ -106,7 +115,7 @@ public class RecentWorkoutsFragment extends Fragment {
         mEmptyRoutinesButton = (Button) v.findViewById(R.id.recent_workouts_empty_routines_button);
         mEmptyRoutinesButton.setOnClickListener((View view) -> {
             FragmentManager manager = getFragmentManager();
-            NewRoutineFragment dialog = NewRoutineFragment.newInstance();
+            NewRoutineFragment dialog = NewRoutineFragment.newInstance(Routine.createRoutineNameList(mRoutines));
 
             dialog.setTargetFragment (RecentWorkoutsFragment.this, REQUEST_NEW_ROUTINE);
             dialog.show (manager, DIALOG_NEW_ROUTINE);
@@ -491,9 +500,10 @@ public class RecentWorkoutsFragment extends Fragment {
         @Override
         protected Routine doInBackground (Void... params) {
             mTemplateDays = getTemplateDays(mRoutineId); // Need to get the ID's of the template days so that we can use them when we add a new RoutineDay
-            for (RoutineDay templateDay : mTemplateDays) {
+            mTemplateDayIds = Routine.createRoutineDayIdList(mTemplateDays);
+            /*for (RoutineDay templateDay : mTemplateDays) {
                 mTemplateDayIds.add(templateDay.getId());
-            }
+            }*/
             return createRoutineObject(mRoutineId);
         }
 

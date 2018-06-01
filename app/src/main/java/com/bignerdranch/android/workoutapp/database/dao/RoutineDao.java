@@ -9,6 +9,7 @@ import android.arch.persistence.room.Query;
 
 import com.bignerdranch.android.workoutapp.model.Routine;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Dao
@@ -19,6 +20,9 @@ public interface RoutineDao {
 
     @Query("SELECT * FROM routines WHERE routine_id = :id")
     Routine getRoutine(int id);
+
+    @Query("SELECT routine_name FROM routines")
+    List<String> getAllRoutineNames();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAllRoutines(List<Routine> routines);

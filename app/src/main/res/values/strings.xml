@@ -54,6 +54,7 @@
     <!-- NewRoutineFragment strings -->
     <string name="new_routine_title">New Routine:</string>
     <string name="new_routine_name_empty_error">Routine name can\'t be empty</string>
+    <string name="new_routine_name_exists_error">A routine with that name exists - must be unique</string>
     <string name="new_routine_days_empty_error">Must be a positive integer between 1 and %1$d inclusive</string>
     <string name="routine_name_hint">Routine Name</string>
     <string name="routine_number_days_hint">Number of days</string>

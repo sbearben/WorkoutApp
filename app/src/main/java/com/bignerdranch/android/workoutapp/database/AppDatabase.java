@@ -69,12 +69,11 @@ public abstract class AppDatabase extends RoomDatabase {
      */
     private static AppDatabase buildDatabase (final Context appContext, final AppExecutors executors) {
         return Room.databaseBuilder(appContext, AppDatabase.class, DATABASE_NAME)
-                .allowMainThreadQueries()
+                //.allowMainThreadQueries()
                 .addCallback(new Callback() {
                     @Override
                     public void onCreate(@NonNull SupportSQLiteDatabase db) {
                         super.onCreate(db);
-                        Log.i(TAG, "DATABSE CREATED");
                         executors.diskIO().execute(() -> {
                             // Add a delay to simulate a long-running operation
                             // addDelay();
@@ -89,7 +88,7 @@ public abstract class AppDatabase extends RoomDatabase {
 
                             insertData(database, routines, routineDays, exercises, reppedSets);
                             // notify that the database was created and it's ready to be used
-                            database.setDatabaseCreated(); */
+                            database.setDatabaseCreated();*/
                         });
                     }
                 })

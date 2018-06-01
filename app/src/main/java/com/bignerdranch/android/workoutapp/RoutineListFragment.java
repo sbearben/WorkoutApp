@@ -160,7 +160,7 @@ public class RoutineListFragment extends Fragment {
 
     private void startAddRoutineDialog() {
         FragmentManager manager = getFragmentManager();
-        NewRoutineFragment dialog = NewRoutineFragment.newInstance();
+        NewRoutineFragment dialog = NewRoutineFragment.newInstance(Routine.createRoutineNameList(mRoutines));
 
         dialog.setTargetFragment (RoutineListFragment.this, REQUEST_NEW_ROUTINE);
         dialog.show (manager, DIALOG_NEW_ROUTINE);

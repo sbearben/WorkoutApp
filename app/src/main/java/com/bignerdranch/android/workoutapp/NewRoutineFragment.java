@@ -18,6 +18,8 @@ import android.widget.Button;
 
 import com.bignerdranch.android.workoutapp.model.Routine;
 
+import java.util.ArrayList;
+
 /**
  * Created by Armon on 21/03/2018.
  */
@@ -27,19 +29,31 @@ public class NewRoutineFragment extends DialogFragment {
     public static final String EXTRA_ROUTINE_NAME = "com.bignerdranch.android.workoutapp.routine_name";
     public static final String EXTRA_ROUTINE_DAYS = "com.bignerdranch.android.workoutapp.routine_days";
 
+    public static final String ARG_ROUTINE_NAMES = "routine_names";
+
+    public ArrayList<String> mAllRoutineNames = new ArrayList<>();
+
     private TextInputLayout mNameInputLayout;
     private TextInputEditText mNameInputEditText;
     private TextInputLayout mDaysInputLayout;
     private TextInputEditText mDaysInputEditText;
 
 
-    public static NewRoutineFragment newInstance() {
-        return new NewRoutineFragment();
+    public static NewRoutineFragment newInstance (ArrayList<String> routineNames) {
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_ROUTINE_NAMES, routineNames);
+
+        NewRoutineFragment fragment = new NewRoutineFragment();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog (Bundle savedInstanceState) {
+        // Get the routine names that were passed in as a fragment argument
+        mAllRoutineNames = (ArrayList<String>) getArguments().getSerializable(ARG_ROUTINE_NAMES);
+
         View v = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_new_routine, null);
 
         mNameInputLayout = (TextInputLayout) v.findViewById(R.id.dialog_new_routine_name_layout);
@@ -61,6 +75,8 @@ public class NewRoutineFragment extends DialogFragment {
             public void afterTextChanged(Editable s) {
                 if (s.toString().equals(""))
                     mNameInputLayout.setError(getString(R.string.new_routine_name_empty_error));
+                else if (doesRoutineExist(mAllRoutineNames, s.toString()))
+                    mNameInputLayout.setError(getString(R.string.new_routine_name_exists_error));
                 else
                     mNameInputLayout.setError(null);
             }
@@ -110,6 +126,11 @@ public class NewRoutineFragment extends DialogFragment {
                     mNameInputLayout.setError(getString(R.string.new_routine_name_empty_error));
                     invalidInput = true;
                 }
+                else if (doesRoutineExist(mAllRoutineNames, name)) {
+                    mNameInputLayout.setError(getString(R.string.new_routine_name_exists_error));
+                    invalidInput = true;
+                }
+
                 if (daysStr.equals("")) {
                     mDaysInputLayout.setError(getString(R.string.new_routine_days_empty_error, Routine.MAX_ROUTINE_DAYS));
                     return; // Don't need to set the invalidInput flag here because if we reached this point we've already set all the error messages and can return
@@ -124,6 +145,15 @@ public class NewRoutineFragment extends DialogFragment {
         });
 
         return newRoutineAlertDialog;
+    }
+
+    // Method to check if inputted potential routine name already exists (routine names have to be unique)
+    private boolean doesRoutineExist (ArrayList<String> routineNames, String potentialName) {
+        for (String routineName : routineNames) {
+            if (routineName.equals(potentialName))
+                return true;
+        }
+        return false;
     }
 
     private void sendResult (int resultCode, String routineName, int numberDays) {

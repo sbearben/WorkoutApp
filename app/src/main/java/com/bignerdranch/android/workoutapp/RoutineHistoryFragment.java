@@ -63,7 +63,8 @@ public class RoutineHistoryFragment extends Fragment {
     private Routine mRoutine;
     private int mRoutineId;
     private String mRoutineName;
-    private List<RoutineDay> mRoutineDays;
+    //private List<RoutineDay> mRoutineDays;
+    private ArrayList<String> mAllRoutineNames;
     private ArrayList<Integer> mTemplateDayIds;
 
 
@@ -103,7 +104,7 @@ public class RoutineHistoryFragment extends Fragment {
         mEmptyRoutinesButton = (Button) v.findViewById(R.id.routine_history_empty_routines_button);
         mEmptyRoutinesButton.setOnClickListener((View view) -> {
             FragmentManager manager = getFragmentManager();
-            NewRoutineFragment dialog = NewRoutineFragment.newInstance();
+            NewRoutineFragment dialog = NewRoutineFragment.newInstance(mAllRoutineNames);
 
             dialog.setTargetFragment (RoutineHistoryFragment.this, REQUEST_NEW_ROUTINE);
             dialog.show (manager, DIALOG_NEW_ROUTINE);
@@ -367,6 +368,7 @@ public class RoutineHistoryFragment extends Fragment {
         private int mRoutineId;
         private List<RoutineDay> mTemplateDays;
         private ArrayList<Integer> mTemplateDayIds; // Need this because we initialize this list in doInBackground(), but need to assign it to a our global list of TemplateDayIds in onPostExecute()
+        private List<String> mRoutineNames;
 
         public CreateRoutineTask (int routineId) {
             mRoutineId = routineId;
@@ -376,29 +378,25 @@ public class RoutineHistoryFragment extends Fragment {
         @Override
         protected Routine doInBackground (Void... params) {
             mTemplateDays = mDataRepository.loadTemplateRoutineDays(mRoutineId); // Need to get the ID's of the template days so that we can use them when we add a new RoutineDay
-            for (RoutineDay templateDay : mTemplateDays) {
+            mRoutineNames = mDataRepository.loadAllRoutineNames();
+            mTemplateDayIds = Routine.createRoutineDayIdList(mTemplateDays);
+            /*for (RoutineDay templateDay : mTemplateDays) {
                 mTemplateDayIds.add(templateDay.getId());
-            }
+            }*/
+
             return createRoutineObject(mRoutineId);
         }
 
         @Override
         protected void onPostExecute (Routine routine) {
-            mRoutine = routine; // Assign the routine to our global variable mRoutine so we can use outside the AsyncTask
+            RoutineHistoryFragment.this.mRoutine = routine; // Assign the routine to our global variable mRoutine so we can use outside the AsyncTask
             RoutineHistoryFragment.this.mTemplateDayIds = mTemplateDayIds;
+            RoutineHistoryFragment.this.mAllRoutineNames = new ArrayList<>(mRoutineNames); // Need this since we pass a list of Routine names to NewRoutineFragment
 
             // Determine of the visibility of the empty routineDays view (only if mRoutine != null since that means a Routine exists)
             if (mRoutine != null)
                 setEmptyRoutineDaysViewsVisibility(mRoutine.getRoutineDays());
             updateUI();
-
-            // Put this in a try-catch block just since I'm not sure if getActivity() will return non-null since this Async is getting fired off in onResume()
-            /*try {
-                init_toolbar(getActivity());
-            }
-            catch (Exception e) {
-                Log.i(TAG, e.getMessage());
-            }*/
         }
     }
 

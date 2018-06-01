@@ -118,9 +118,8 @@ public class Routine implements Copyable<Routine> {
         return null;
     }
 
-    public static ArrayList<Integer> createRoutineDayIdList(@NonNull List<RoutineDay> routineDays) {
+    public static ArrayList<Integer> createRoutineDayIdList (@NonNull List<RoutineDay> routineDays) {
         ArrayList<Integer> routineDayIdList = new ArrayList<>();
-
         for (RoutineDay routineDay : routineDays) {
             try {
                 routineDayIdList.add(routineDay.getId());
@@ -134,6 +133,19 @@ public class Routine implements Copyable<Routine> {
 
     public ArrayList<Integer> createRoutineDayIdList() {
         return createRoutineDayIdList(getRoutineDays());
+    }
+
+    public static ArrayList<String> createRoutineNameList (@NonNull List<Routine> routines) {
+        ArrayList<String> routineNames = new ArrayList<>();
+        for (Routine routine : routines) {
+            try {
+                routineNames.add(routine.getName());
+            }
+            catch (Exception e) {
+                return null;
+            }
+        }
+        return routineNames;
     }
 
     @Override

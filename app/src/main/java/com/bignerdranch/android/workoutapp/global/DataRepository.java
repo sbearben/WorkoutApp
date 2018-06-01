@@ -7,6 +7,7 @@ import com.bignerdranch.android.workoutapp.model.Routine;
 import com.bignerdranch.android.workoutapp.model.RoutineDay;
 import com.bignerdranch.android.workoutapp.model.TimedSet;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -43,6 +44,10 @@ public class DataRepository {
 
     public Routine loadRoutine (final int routineId) {
         return mDatabase.routineDao().getRoutine(routineId);
+    }
+
+    public List<String> loadAllRoutineNames() {
+        return mDatabase.routineDao().getAllRoutineNames();
     }
 
     public void insertRoutines (final List<Routine> routines) {
