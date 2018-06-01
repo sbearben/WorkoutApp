@@ -28,7 +28,6 @@ import android.widget.TextView;
 import com.bignerdranch.android.workoutapp.global.BasicApp;
 import com.bignerdranch.android.workoutapp.global.DataRepository;
 import com.bignerdranch.android.workoutapp.model.Exercise;
-import com.bignerdranch.android.workoutapp.model.ReppedSet;
 import com.bignerdranch.android.workoutapp.model.Routine;
 import com.bignerdranch.android.workoutapp.model.RoutineDay;
 import com.bignerdranch.android.workoutapp.model.Set;
@@ -61,8 +60,9 @@ public class RecentWorkoutsFragment extends Fragment {
     private ArrayList<Integer> mActiveRoutineTemplateDayIds; // Need to use an ArrayList since we are passing it as Intent/Fragament EXTRA/ARG and it is serializable
 
     private AppCompatSpinner mToolbarSpinner;
-    private View mEmptyRoutinesView; // TODO: need to implement this
+    private View mEmptyRoutinesView;
     private Button mEmptyRoutinesButton;
+    private View mEmptyRoutineDaysView;
     private FloatingActionButton mFloatingActionButton;
 
     private boolean mIsInitialSpinnerSelection = true; // boolean to make sure the Spinner callback onItemSelected doesn't execute its contained code when we initialize its first item with setSelection()
@@ -82,8 +82,7 @@ public class RecentWorkoutsFragment extends Fragment {
         Application application = getActivity().getApplication();
         mDataRepository = ((BasicApp) application).getRepository();
 
-
-        mRoutineIdNameMap = new LinkedHashMap<>();
+        /*mRoutineIdNameMap = new LinkedHashMap<>();
         mRoutines  = mDataRepository.loadRoutines();
 
         // Create RoutineId/Name map used to easily flip between routines when the user uses the spinner
@@ -91,7 +90,7 @@ public class RecentWorkoutsFragment extends Fragment {
             mRoutineIdNameMap.put(routine.getName(), routine.getId());
         }
 
-        mActiveRoutineId = determineActiveRoutineId(mRoutines);
+        mActiveRoutineId = determineActiveRoutineId(mRoutines);*/
     }
 
     @Override
@@ -100,11 +99,11 @@ public class RecentWorkoutsFragment extends Fragment {
 
         // Get the Empty Routines view
         mEmptyRoutinesView = (View) v.findViewById(R.id.recent_workouts_empty_routines_view);
-        if (mRoutines != null) {
-            mEmptyRoutinesView.setVisibility(View.GONE);
-        }
+        // Initially hide the emptyRoutinesView
+        mEmptyRoutinesView.setVisibility(View.GONE);
 
-        mEmptyRoutinesButton = (Button) v.findViewById(R.id.recent_workouts_empty_crimes_button);
+        // Inflate no routines button
+        mEmptyRoutinesButton = (Button) v.findViewById(R.id.recent_workouts_empty_routines_button);
         mEmptyRoutinesButton.setOnClickListener((View view) -> {
             FragmentManager manager = getFragmentManager();
             NewRoutineFragment dialog = NewRoutineFragment.newInstance();
@@ -112,9 +111,14 @@ public class RecentWorkoutsFragment extends Fragment {
             dialog.setTargetFragment (RecentWorkoutsFragment.this, REQUEST_NEW_ROUTINE);
             dialog.show (manager, DIALOG_NEW_ROUTINE);
         });
+        mEmptyRoutinesButton.setVisibility(View.GONE);
+
+        // Get the Empty RoutineDays view
+        mEmptyRoutineDaysView = (View) v.findViewById(R.id.recent_workouts_empty_routinedays_view);
+        // Initially hide the emptyRoutinesView
+        mEmptyRoutineDaysView.setVisibility(View.GONE);
 
         mRecentWorkoutViews = new ArrayList<>();
-
         // Nested for loops to initialize all of our TextViews for our most recent workout days
         for (int i = 0; i < MAX_RECENT_WORKOUT_DAYS; i++) {
             final int i_copy = i; // Needed to create this variable because can't use 'i' in the CardView onClickListener since 'i' must be final
@@ -123,9 +127,11 @@ public class RecentWorkoutsFragment extends Fragment {
             // Get a reference to the CardView that holds all the below TextViews
             int resId = recentWorkoutView.resIdGenerator((i + 1) + "");
             recentWorkoutView.mCardView = (CardView) v.findViewById(resId);
-            // Set the CardView's onClickListner to open up the RoutineDay page if the routine day is clicked on
+            // Also want to initially hide our cards
+            recentWorkoutView.mCardView.setVisibility(View.GONE);
+            // Set the CardView's onClickListener to open up the RoutineDay page if the routine day is clicked on
             recentWorkoutView.mCardView.setOnClickListener((View view) -> {
-                if (mRoutineDayIds != null) {
+                if (i_copy < mRoutineDayIds.size()) { // Checking this so that clicking on a card when the RoutineDay doesn't exist doesn't cause a crash
                     Intent intent = EditRoutineDayActivity.newIntent(getActivity(), mRoutineDayIds.get(i_copy), mActiveRoutineTemplateDayIds, mActiveRoutine.getName());
                     startActivity(intent);
                 }
@@ -154,6 +160,7 @@ public class RecentWorkoutsFragment extends Fragment {
 
         // Initializing the FloatingActionButton
         mFloatingActionButton = v.findViewById(R.id.fab_new_workout_day); // we set the onClickListener in init_new_routineday_fab(..)
+        mFloatingActionButton.setVisibility(View.GONE);
 
         return v;
     }
@@ -168,15 +175,20 @@ public class RecentWorkoutsFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         // Setup our custom toolbar and Spinner
-        init_toolbar(getActivity());
+        /* put this here so RoutineHistoryFragment doesn't crash before we use the Spinner for the first
+           time (since that was previously the only place we were setting the saved routine id) */
+        //SharedPreferences.setActiveRoutineId(getActivity(), mActiveRoutineId);
+        /*SharedPreferences.setActiveRoutineIdAndName(getActivity(), mActiveRoutineId, getRoutineName(mActiveRoutineId, mRoutines));
+        init_toolbar(getActivity());*/
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        /* Background AsynTask that calls createRoutineObject(mRoutineId) on the background thread and assigns
+        /* Background AsyncTask that calls createRoutineObject(mRoutineId) on the background thread and assigns
            the returned Routine to mActiveRoutine, then calls updateUI() */
-        new CreateRoutineTask(mActiveRoutineId).execute();
+        new GetRoutinesTask().execute();
     }
 
     // Creates a full Routine object if all the required data exists
@@ -184,7 +196,7 @@ public class RecentWorkoutsFragment extends Fragment {
         Routine activeRoutine = null;
 
         // Initialize our list of RoutineDayIds
-        mRoutineDayIds = new ArrayList<>(MAX_RECENT_WORKOUT_DAYS);
+        mRoutineDayIds = new ArrayList<>();
 
         if (routineId != SharedPreferences.NO_ACTIVE_ROUTINE) {
             activeRoutine = mDataRepository.loadRoutine(routineId);
@@ -198,9 +210,9 @@ public class RecentWorkoutsFragment extends Fragment {
                 routineDays.addAll(mDataRepository.loadMostRecentDaysInRoutine(routineId, MAX_RECENT_WORKOUT_DAYS));
             }
 
-            if (routineDays.size() == 0) {
-                return null;
-            }
+            /*if (routineDays.size() == 0) {
+                //return null;
+            }*/
             activeRoutine.addRoutineDays(routineDays);
 
             // Get the Exercises for each RoutineDay
@@ -210,9 +222,6 @@ public class RecentWorkoutsFragment extends Fragment {
 
                 // Get first three exercises for each day
                 List<Exercise> dayExercises = mDataRepository.loadFirstNExercisesInRoutineDay(routineDay.getId(), RecentWorkoutViews.EXERCISES_PER_CARDVIEW);
-                if (dayExercises == null) {
-                    return null;
-                }
                 routineDay.addExercises(dayExercises);
 
                 // Get sets in Exercises
@@ -226,17 +235,10 @@ public class RecentWorkoutsFragment extends Fragment {
                     else {
                         exerciseSets = (List<Set>)(List<?>) mDataRepository.loadAllTimedExerciseSets(exercise.getId());
                     }
-
-                    if (exerciseSets == null) {
-                        return null;
-                    }
                     exercise.addSets(exerciseSets);
                 }
             }
         }
-
-        //if (activeRoutine != null)
-            //Log.i (TAG, activeRoutine.toString());
 
         return activeRoutine;
     }
@@ -283,7 +285,8 @@ public class RecentWorkoutsFragment extends Fragment {
 
                         new CreateRoutineTask(mActiveRoutineId).execute();
                         // Save the selected RoutineId in SharedPreferences so that we can load the correct Routine if we navigate away and back again
-                        SharedPreferences.setActiveRoutineId(context, mActiveRoutineId);
+                        //SharedPreferences.setActiveRoutineId(context, mActiveRoutineId);
+                        SharedPreferences.setActiveRoutineIdAndName(context, mActiveRoutineId, selectedRoutineName);
                     }
                     else {
                         mIsInitialSpinnerSelection = false;
@@ -310,7 +313,8 @@ public class RecentWorkoutsFragment extends Fragment {
         final int dayNumber_copy = dayNumber; // Need this because Android Studio whines if we use dayNumber because of the above if statement
         mFloatingActionButton.setOnClickListener((View view) -> {
 
-            if (!mActiveRoutine.getRoutineDays().get(0).isCompleted()) { // Check if we have an Ongoing RoutineDay - only want to display the AlertDialog if we do
+            List<RoutineDay> routineDays = mActiveRoutine.getRoutineDays();
+            if (!(routineDays.size() == 0) && !mActiveRoutine.getRoutineDays().get(0).isCompleted()) { // Check if we have an Ongoing RoutineDay - only want to display the AlertDialog if we do
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
                 View v = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_ongoing_routineday, null);
@@ -350,6 +354,7 @@ public class RecentWorkoutsFragment extends Fragment {
                 RoutineDay routineDay;
 
                 // Check if the relevant RoutineDay exists, if it doesn't we hide the CardView and go back to the top of the loop (all proceeding CardViews will be hidden)
+                Log.i (TAG, "SIZE: " + mActiveRoutine.getRoutineDays().size());
                 if (mActiveRoutine.getRoutineDays().size() > i) {
                     routineDay = mActiveRoutine.getRoutineDays().get(i);
                     recentWorkoutView.mCardView.setVisibility(View.VISIBLE);
@@ -405,11 +410,11 @@ public class RecentWorkoutsFragment extends Fragment {
             routine.setName(routineName);
             routine.setDateCreated(new Date());
 
-            //new RoutineListFragment.InsertNewRoutineTask(routine, numberDays).execute();
+            new RoutineListFragment.InsertNewRoutineTask(routine, numberDays, mDataRepository, getActivity(), this, 0).execute();
         }
     }
 
-        private String getRoutineName (int routineId, List<Routine> routines) {
+    private String getRoutineName (int routineId, List<Routine> routines) {
         for (Routine routine : routines) {
             if (routine.getId() == routineId)
                 return routine.getName();
@@ -497,18 +502,95 @@ public class RecentWorkoutsFragment extends Fragment {
             mActiveRoutine = routine; // Assign the routine to our global variable mActiveRoutine so we can use outside the AsynTask
             mActiveRoutineTemplateDayIds = mTemplateDayIds; // Assign the list of template day IDs to our global variable mActiveRoutineTemplateDayIds so we can use outside the AsynTask
 
-            int lastDayNumber = 0; // 0 in this case would indicate that there have been no previous RoutineDays, so we should start at Day 1
             if (routine != null) { // need this since the call to getRoutineDays() was crashing the app the first time we installed it and the data is being generated (can probably remove once we stop doing data generation)
-                if (routine.getRoutineDays() != null) {
+                // Code to determine what day number the last completed workout day was in the active routine
+                int lastDayNumber = 0; // 0 in this case would indicate that there have been no previous RoutineDays, so we should start at Day 1
+                if (routine.getRoutineDays().size() != 0) { // originally routine.getRoutineDays() != null
                     lastDayNumber = routine.getRoutineDays().get(0).getDayNumber();
                 }
-            }
-            /*for (RoutineDay routineDay : mTemplateDays)
-                Log.i(TAG, routineDay.toString());*/
 
-            if (routine != null) // need this since the call to getRoutineDays() was crashing the app the first time we installed it and the data is being generated (can probably remove once we stop doing data generation)
+                // Determine of the visibility of the recent workout cards and the empty routineDays view
+                setRecentWorkoutCardsVisibility(routine.getRoutineDays());
+                setEmptyRoutineDaysViewsVisibility(routine.getRoutineDays());
+
+                // Initialize the fab used to start a new workout day
                 init_new_routineday_fab(mTemplateDays, lastDayNumber, mTemplateDayIds, routine.getName()); // Now that we have our template days we can set the fab onClickListener
+            }
             updateUI();
+        }
+    }
+
+    // Async used to load the routines, set the activeRoutineId and save that in the PreferenceManager, then execute the CreateRoutineTask Async
+    private class GetRoutinesTask extends AsyncTask<Void, Void, Void> {
+
+        List<Routine> mRoutines;
+        private Map<String, Integer> mRoutineIdNameMap;
+
+        public GetRoutinesTask() {
+        }
+
+        @Override
+        protected Void doInBackground (Void... params) {
+            mRoutineIdNameMap = new LinkedHashMap<>();
+            mRoutines  = mDataRepository.loadRoutines();
+
+            // Create RoutineId/Name map used to easily flip between routines when the user uses the spinner
+            for (Routine routine : mRoutines) {
+                mRoutineIdNameMap.put(routine.getName(), routine.getId());
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute (Void result) {
+            // Set values for some global fields
+            RecentWorkoutsFragment.this.mRoutines = mRoutines;
+            RecentWorkoutsFragment.this.mRoutineIdNameMap = mRoutineIdNameMap;
+            RecentWorkoutsFragment.this.mActiveRoutineId = determineActiveRoutineId(mRoutines);
+
+            // Determine the visibility of the Empty Routines views
+            setEmptyRoutineViewsVisibility(mActiveRoutineId);
+
+            // Save the active routine Id and name to the preference manager
+            SharedPreferences.setActiveRoutineIdAndName(getActivity(), mActiveRoutineId, getRoutineName(mActiveRoutineId, mRoutines));
+            // Now that we have our routines we initialize our toolbar
+            init_toolbar(getActivity());
+
+            new CreateRoutineTask(mActiveRoutineId).execute();
+        }
+    }
+
+    // Determine the visibility of the Empty Routines views based on the given RoutineId
+    private void setEmptyRoutineViewsVisibility (int routineId) {
+        if (routineId != SharedPreferences.NO_ACTIVE_ROUTINE) {
+            mEmptyRoutinesView.setVisibility(View.GONE);
+            mEmptyRoutinesButton.setVisibility(View.GONE);
+            mFloatingActionButton.setVisibility(View.VISIBLE);
+        }
+        else {
+            mEmptyRoutinesView.setVisibility(View.VISIBLE);
+            mEmptyRoutinesButton.setVisibility(View.VISIBLE);
+            mFloatingActionButton.setVisibility(View.GONE);
+        }
+    }
+
+    // Determine the visibility of the Empty Routines views based on the routineDays we load in createRoutineObject
+    private void setEmptyRoutineDaysViewsVisibility (List<RoutineDay> routineDays) {
+        if (routineDays.size() == 0)
+            mEmptyRoutineDaysView.setVisibility(View.VISIBLE);
+        else
+            mEmptyRoutineDaysView.setVisibility(View.GONE);
+    }
+
+    // Determine of the visibility of the recent workout cards based on the routineDays we load in createRoutineObject
+    private void setRecentWorkoutCardsVisibility (List<RoutineDay> routineDays) {
+        for (int i=0; i<MAX_RECENT_WORKOUT_DAYS; i++) {
+            RecentWorkoutViews recentWorkoutView = mRecentWorkoutViews.get(i);
+            if (i < routineDays.size())
+                recentWorkoutView.mCardView.setVisibility(View.VISIBLE);
+            else
+                recentWorkoutView.mCardView.setVisibility(View.GONE);
         }
     }
 }

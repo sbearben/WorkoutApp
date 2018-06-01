@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +19,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.bignerdranch.android.workoutapp.global.BasicApp;
@@ -25,6 +27,7 @@ import com.bignerdranch.android.workoutapp.global.DataRepository;
 import com.bignerdranch.android.workoutapp.model.Routine;
 import com.bignerdranch.android.workoutapp.model.RoutineDay;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -45,6 +48,8 @@ public class RoutineListFragment extends Fragment {
 
     private List<Routine> mRoutines;
 
+    private View mEmptyRoutinesView;
+    private Button mEmptyRoutinesButton;
     private FloatingActionButton mFloatingActionButton;
 
 
@@ -65,6 +70,18 @@ public class RoutineListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_routinelist, container, false);
 
+        // Get the Empty Routines view
+        mEmptyRoutinesView = (View) v.findViewById(R.id.routinelist_empty_routines_view);
+        // Initially hide the emptyRoutinesView
+        mEmptyRoutinesView.setVisibility(View.GONE);
+
+        // Inflate no routines button
+        mEmptyRoutinesButton = (Button) v.findViewById(R.id.routinelist_empty_routines_button);
+        mEmptyRoutinesButton.setOnClickListener((View view) -> {
+            startAddRoutineDialog();
+        });
+        mEmptyRoutinesButton.setVisibility(View.GONE);
+
         mRoutineRecyclerView = (RecyclerView) v.findViewById(R.id.routinelist_recycler_view);
         mRoutineRecyclerView.setLayoutManager (new LinearLayoutManager(getActivity()));
         mRoutineRecyclerView.addItemDecoration (new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
@@ -72,12 +89,9 @@ public class RoutineListFragment extends Fragment {
         // Initializing the FloatingActionButton
         mFloatingActionButton = v.findViewById(R.id.fab_new_routine);
         mFloatingActionButton.setOnClickListener((View view) -> {
-            FragmentManager manager = getFragmentManager();
-            NewRoutineFragment dialog = NewRoutineFragment.newInstance();
-
-            dialog.setTargetFragment (RoutineListFragment.this, REQUEST_NEW_ROUTINE);
-            dialog.show (manager, DIALOG_NEW_ROUTINE);
+            startAddRoutineDialog();
         });
+        mFloatingActionButton.setVisibility(View.GONE);
 
         return v;
     }
@@ -138,10 +152,18 @@ public class RoutineListFragment extends Fragment {
             routine.setName(routineName);
             routine.setDateCreated(new Date());
 
-            new InsertNewRoutineTask(routine, numberDays).execute();
+            new InsertNewRoutineTask(routine, numberDays, mDataRepository, getActivity(), this, mRoutines.size()).execute();
         }
 
         updateUI();
+    }
+
+    private void startAddRoutineDialog() {
+        FragmentManager manager = getFragmentManager();
+        NewRoutineFragment dialog = NewRoutineFragment.newInstance();
+
+        dialog.setTargetFragment (RoutineListFragment.this, REQUEST_NEW_ROUTINE);
+        dialog.show (manager, DIALOG_NEW_ROUTINE);
     }
 
     private class RoutineHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -227,18 +249,30 @@ public class RoutineListFragment extends Fragment {
         @Override
         protected void onPostExecute (List<Routine> routines) {
             mRoutines = routines;
+            setEmptyRoutineViewsVisibility(routines);
             updateUI();
         }
     }
 
-    private class InsertNewRoutineTask extends AsyncTask<Void, Void, Routine> {
+    /* Made this Async static since we ended up reusing it in RecentWorkoutsFragment (should probably
+       do this with all our Asyncs and throw them in a separate class */
+    protected static class InsertNewRoutineTask extends AsyncTask<Void, Void, Routine> {
 
         private Routine mRoutine;
         private int mNumberDays;
+        private DataRepository mDataRepository;
+        private WeakReference<FragmentActivity> mActivityReference;
+        private Fragment mFragment;
+        private int mStartingNumberRoutines;
 
-        public InsertNewRoutineTask (Routine routine, int numberDays) {
+        public InsertNewRoutineTask (Routine routine, int numberDays, DataRepository dataRepository,
+                                     FragmentActivity activity, Fragment fragment, int startNumRoutines) {
             mRoutine = routine;
             mNumberDays = numberDays;
+            mDataRepository = dataRepository;
+            mActivityReference = new WeakReference<>(activity);
+            mFragment = fragment;
+            mStartingNumberRoutines = startNumRoutines;
         }
 
         @Override
@@ -264,10 +298,32 @@ public class RoutineListFragment extends Fragment {
 
         @Override
         protected void onPostExecute (Routine routine) {
+            /* TODO: not sure if I want to be saving the new routineId in the Preference Manager here
+             * Added this as a work around so that if we create our first Routine from RoutineHistoryFragment,
+             * that screen doesn't still show the "Empty Routines View" when we go back to it after the first Routine is created.
+             * This original problem would happen because even after we create our first Routine from RoutineHistoryFragment,
+             * its ID originally still wouldn't be saved in the Preference Manager until we navigated back to RecentWorkoutsFragment.
+             */
+            if (mStartingNumberRoutines == 0)
+                SharedPreferences.setActiveRoutineIdAndName(mActivityReference.get(), routine.getId(), routine.getName());
+
             // Start the EditRoutineActivity with our new Routine
-            Intent intent = EditRoutineActivity.newIntent(getActivity(), routine.getId());
-            startActivity (intent);
+            Intent intent = EditRoutineActivity.newIntent(mActivityReference.get(), routine.getId());
+            mFragment.startActivity (intent);
         }
     }
 
+    // Determine the visibility of the Empty Routines views based on the routine list we load from the DB
+    private void setEmptyRoutineViewsVisibility(List<Routine> routines) {
+        if (routines.size() != 0) {
+            mEmptyRoutinesView.setVisibility(View.GONE);
+            mEmptyRoutinesButton.setVisibility(View.GONE);
+            mFloatingActionButton.setVisibility(View.VISIBLE);
+        }
+        else {
+            mEmptyRoutinesView.setVisibility(View.VISIBLE);
+            mEmptyRoutinesButton.setVisibility(View.VISIBLE);
+            mFloatingActionButton.setVisibility(View.GONE);
+        }
+    }
 }

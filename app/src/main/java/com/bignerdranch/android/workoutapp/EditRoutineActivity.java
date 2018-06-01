@@ -263,10 +263,10 @@ public class EditRoutineActivity extends AppCompatActivity implements EditRoutin
                         // Cast the fragment to the ChangeableRoutineDayDay interface type so that we can access the RoutineDay on the fragment
                         ChangeableRoutineDayDay editRoutineFragment = (ChangeableRoutineDayDay) fragment;
                         RoutineDay routineDay = editRoutineFragment.getRoutineDay();
-                        // Make sure the routineDay on the fragment hasn't been set to null as in the case for when we're deleting the day
+                        // Make sure the routineDay on the fragment hasn't been set to null as in the case for when we're currently deleting that day
                         if (routineDay != null) {
                             if ((routineDay.getDayNumber() - 1) > mDeletedItemIndex)
-                                // Changing the day number here will prevent us from rewriting the RoutineDay back to the DB in EditRoutineFragment in onPause()
+                                // Changing the day number here will prevent us from rewriting the RoutineDay with the incorrect day back to the DB in EditRoutineFragment in onPause()
                                 editRoutineFragment.setRoutineDayDay(routineDay.getDayNumber() - 1);
                         }
                     }
@@ -304,8 +304,9 @@ public class EditRoutineActivity extends AppCompatActivity implements EditRoutin
 
         @Override
         protected void onPostExecute (Void result) {
-            // If the Routine we're deleting is currently the one saved in SharedPreferences, we its ID from being saved there
-            SharedPreferences.deleteActiveRoutineId(EditRoutineActivity.this, mRoutine.getId());
+            // Since we're deleting this Routine we also want to check and delete its saved Id and Name from the PreferenceManager if they're currently saved there
+            SharedPreferences.deleteActiveRoutineIdAndName (EditRoutineActivity.this, mRoutine.getId(), mRoutine.getName());
+
             // The Routine has been deleted since we deleted its last RoutineDay - therefore we fire off an onBackPressed() to go back to RoutineListFragment
             onBackPressed();
         }

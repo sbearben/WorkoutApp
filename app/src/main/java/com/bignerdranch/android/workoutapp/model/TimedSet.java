@@ -41,6 +41,11 @@ public class TimedSet extends Set<Date> {
         super(exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
     }
 
+    @Ignore
+    public TimedSet (int setNumber, int targetWeight, Date targetMeasurement, Date actualMeasurement) {
+        super(setNumber, targetWeight, targetMeasurement, actualMeasurement);
+    }
+
     @Override
     public Set createCopy() {
         return new TimedSet(this.getExerciseId(), this.getSetNumber(), this.getTargetWeight(), this.getTargetMeasurement(), this.getActualMeasurement());
@@ -49,6 +54,18 @@ public class TimedSet extends Set<Date> {
     @Override
     public Set createDeepCopy() {
         return createCopy();
+    }
+
+    public static Set createNewDefaultSet(int exerciseId, int setNumber, int targetWeight) {
+        return new TimedSet (exerciseId, setNumber, targetWeight,
+                new GregorianCalendar(0, 0, 0, 0, 0, 30).getTime(),
+                null); // TODO: need to add equivalent to ACTUAL_REPS_NULL to TimedSet);
+    }
+
+    public static Set createNewDefaultSet(int setNumber, int targetWeight) {
+        return new TimedSet (setNumber, targetWeight,
+                new GregorianCalendar(0, 0, 0, 0, 0, 30).getTime(),
+                null); // TODO: need to add equivalent to ACTUAL_REPS_NULL to TimedSet);
     }
 
     @Override

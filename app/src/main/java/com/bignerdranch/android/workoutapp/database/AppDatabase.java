@@ -74,12 +74,13 @@ public abstract class AppDatabase extends RoomDatabase {
                     @Override
                     public void onCreate(@NonNull SupportSQLiteDatabase db) {
                         super.onCreate(db);
-                        /*executors.diskIO().execute(() -> {
+                        Log.i(TAG, "DATABSE CREATED");
+                        executors.diskIO().execute(() -> {
                             // Add a delay to simulate a long-running operation
                             // addDelay();
 
                             // Generate the data for pre-population
-                            AppDatabase database = AppDatabase.getInstance(appContext, executors);
+                            /*AppDatabase database = AppDatabase.getInstance(appContext, executors);
 
                             List<Routine> routines = DataGenerator.generateRoutines();
                             List<RoutineDay> routineDays = DataGenerator.generateRoutineDays(routines);
@@ -88,8 +89,8 @@ public abstract class AppDatabase extends RoomDatabase {
 
                             insertData(database, routines, routineDays, exercises, reppedSets);
                             // notify that the database was created and it's ready to be used
-                            database.setDatabaseCreated();
-                        });*/
+                            database.setDatabaseCreated(); */
+                        });
                     }
                 })
                 .build();

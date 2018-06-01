@@ -32,6 +32,7 @@ import com.bignerdranch.android.workoutapp.global.BasicApp;
 import com.bignerdranch.android.workoutapp.global.DataRepository;
 import com.bignerdranch.android.workoutapp.model.Exercise;
 import com.bignerdranch.android.workoutapp.model.ReppedSet;
+import com.bignerdranch.android.workoutapp.model.Routine;
 import com.bignerdranch.android.workoutapp.model.RoutineDay;
 import com.bignerdranch.android.workoutapp.model.Set;
 import com.bignerdranch.android.workoutapp.model.TimedSet;
@@ -73,7 +74,7 @@ public class EditRoutineDayFragment extends RoutineDayPageFragment {
                 if (mRoutineDay.isCompleted()) {
                     new WriteRoutineDayTask(mRoutineDay).execute();
                 }
-                else if (mRoutineDay.isTemplate()) {
+                else if (mRoutineDay.isTemplate()) { // This essentially takes the loaded template day and creates an "Ongoing" RoutineDay
                     if (mRoutineDay.isStarted()) {
                         // if we have a template day, copy it and save the new RoutineDay - set isComplete to false
                         RoutineDay routineDay = mRoutineDay.createDeepCopy();
@@ -81,12 +82,17 @@ public class EditRoutineDayFragment extends RoutineDayPageFragment {
                         routineDay.setTemplate(false);
                         routineDay.setDate(mRoutineDayDate);
 
-                        mRoutineDay = routineDay;
-                        new WriteRoutineDayTask(mRoutineDay).execute();
+                        new WriteRoutineDayTask(routineDay).execute();
+                        updateTemplateDayEquivalent(mRoutineDay, mRoutineDay.getId());
                     }
                     else {
                         // don't save anything
                     }
+                }
+                // This means we have an "Ongoing" RoutineDay
+                else if (!mRoutineDay.isTemplate() && !mRoutineDay.isCompleted()) {
+                    new WriteRoutineDayTask(mRoutineDay).execute();
+                    updateTemplateDayEquivalent(mRoutineDay, mTemplateDayIds.get(mRoutineDay.getDayNumber()-1));
                 }
             }
         }
@@ -166,6 +172,7 @@ public class EditRoutineDayFragment extends RoutineDayPageFragment {
         mRoutineDayDoneTextView = (TextView) actionBarView.findViewById(R.id.actionbar_routineday_done_textview);
         mRoutineDayDoneTextView.setOnClickListener((View v) -> {
             if (mRoutineDay.isTemplate()) {
+                // Create a copy of the current template day, set it to completed and set the template flag to FALSE making it a non-template day
                 RoutineDay routineDay = mRoutineDay.createDeepCopy();
                 routineDay.setCompleted(true);
                 routineDay.setTemplate(false);
@@ -179,29 +186,45 @@ public class EditRoutineDayFragment extends RoutineDayPageFragment {
                 else { // If we arrive to this else statement, it means the user just clicked Done, aka is completing, a brand new RoutineDay (thus creating a new one in the DB)
 
                     /* Here we want to create a copy of the template day, set all of its set's actualMeasurements to null, so that we can update the template
-                       day in the DB with the newest workout's format - aka the same exercises, sets, target weight, target reps (or time) for that day
+                       day in the DB with the newes t workout's format - aka the same exercises, sets, target weight, target reps (or time) for that day
                        - this allows the user to base new RoutineDays on their most recent previous completed days */
-                    RoutineDay templateDay = mRoutineDay.createDeepCopy();
-                    templateDay.setId(mRoutineDay.getId());
-
-                    for (Exercise exercise : templateDay.getExercises()) {
-                        for (Set exerciseSet : exercise.getSets()) {
-                            exerciseSet.setActualMeasurementNull();
-                        }
-                    }
-                    // Write the updated templateDay back to the DB
-                    new WriteRoutineDayTask(templateDay).execute();
+                    updateTemplateDayEquivalent(mRoutineDay, mRoutineDay.getId());
                 }
 
-                /* We set mRoutineDay to routineDay so that when we end the Fragment/Acitivity in the call to getActivity().onBackPressed()
+                /* We set mRoutineDay to routineDay so that when we end the Fragment/Activity in the call to getActivity().onBackPressed()
                    below, the new routineDay will be written to the Db in onPause() through the WriteRoutineDayTask Async */
                 mRoutineDay = routineDay;
+            }
+            // This means we have an "Ongoing" RoutineDay
+            else if (!mRoutineDay.isTemplate() && !mRoutineDay.isCompleted()) {
+                mRoutineDay.setCompleted(true); // We want to set the the "Ongoing" RoutineDay to completed
+                updateTemplateDayEquivalent(mRoutineDay, mTemplateDayIds.get(mRoutineDay.getDayNumber()-1));
             }
             getActivity().onBackPressed();
         });
         mRoutineDayDoneTextView.setVisibility(View.GONE); // Initially hide the Done TextView
 
         //updateToolbar();
+    }
+
+    /* This method is used to update the equivalent day template day to the given RoutineDay
+       - for example if the user is currently performing day 3 in the routine, we update the
+         day 3 template day to reflect whatever exercise/metrics the user is currently performing */
+    private void updateTemplateDayEquivalent (RoutineDay routineDay, int templateDayId) {
+        RoutineDay templateDay = routineDay.createDeepCopy();
+        templateDay.setTemplate(true);
+        templateDay.setCompleted(false);
+        templateDay.setDate(RoutineDay.DATE_NULL);
+        templateDay.setId(templateDayId);
+
+        // Set all the actual measurements for the template day to their null values
+        for (Exercise exercise : templateDay.getExercises()) {
+            for (Set exerciseSet : exercise.getSets()) {
+                exerciseSet.setActualMeasurementNull();
+            }
+        }
+        // Write the updated templateDay back to the DB
+        new WriteRoutineDayTask(templateDay).execute();
     }
 
     // To refresh the Views contained in the Toolbar
@@ -212,7 +235,7 @@ public class EditRoutineDayFragment extends RoutineDayPageFragment {
         /*** NOTE ***: I was having issues with onItemSelected() being called twice sometimes randomly (and once other times); using
          * this two argument setSelection call with false as the second argument fixed it for some reason
          * Solution found: https://stackoverflow.com/a/30253459/7648952 */
-        mRoutineDaySpinner.setSelection(mRoutineDay.getDayNumber()-1, false); // Set the active routine as the selected item of the spinner
+        mRoutineDaySpinner.setSelection(mRoutineDay.getDayNumber()-1, false);
 
         // Display today's date if this is a RoutineDay without a date set (aka a new day)
         if (mRoutineDayDate == null) {
@@ -246,7 +269,7 @@ public class EditRoutineDayFragment extends RoutineDayPageFragment {
                     setViews.redrawEnabledViews(reppedSet, actualButtonString(reppedSet), actualButtonBackgroundChangeable());
                     // TODO: need to start a timer here (Broadcast Intent?)
                 }
-                updateToolbar(); // Need to update toolbar since if we went from a Routineday that wasn't "started" to one that was, the Done button needs to appear
+                updateToolbar(); // Need to update toolbar since if we went from a RoutineDay that wasn't "started" to one that was, the Done button needs to appear
             }
         };
     }

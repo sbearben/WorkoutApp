@@ -41,6 +41,11 @@ public class ReppedSet extends Set<Integer> {
         super(exerciseId, setNumber, targetWeight, targetMeasurement, actualMeasurement);
     }
 
+    @Ignore
+    public ReppedSet (int setNumber, int targetWeight, Integer targetMeasurement, Integer actualMeasurement) {
+        super(setNumber, targetWeight, targetMeasurement, actualMeasurement);
+    }
+
     @Override
     public Set createCopy() {
         return new ReppedSet(this.getExerciseId(), this.getSetNumber(), this.getTargetWeight(), this.getTargetMeasurement(), this.getActualMeasurement());
@@ -49,6 +54,15 @@ public class ReppedSet extends Set<Integer> {
     @Override
     public Set createDeepCopy() {
         return createCopy();
+    }
+
+    public static Set createNewDefaultSet (int exerciseId, int setNumber, int targetWeight) {
+        return new ReppedSet (exerciseId, setNumber, targetWeight, 8, ReppedSet.ACTUAL_REPS_NULL);
+
+    }
+
+    public static Set createNewDefaultSet (int setNumber, int targetWeight) {
+        return new ReppedSet (setNumber, targetWeight, 8, ReppedSet.ACTUAL_REPS_NULL);
     }
 
     @Override

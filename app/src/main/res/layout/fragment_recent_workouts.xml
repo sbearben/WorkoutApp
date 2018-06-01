@@ -197,7 +197,7 @@
 
     </LinearLayout>
 
-    <!-- The "Empty State Layer" that will be displayed when we have no routines -->
+    <!-- The "Empty Routine State Layer" that will be displayed when we have no routines -->
     <LinearLayout
         android:id="@+id/recent_workouts_empty_routines_view"
         android:layout_width="match_parent"
@@ -209,14 +209,34 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="@string/empty_routines_text"
-            tools:textSize="20sp"/>
+            android:text="@string/empty_routines_text"
+            android:textSize="20sp"/>
 
         <Button
-            android:id="@+id/recent_workouts_empty_crimes_button"
+            android:id="@+id/recent_workouts_empty_routines_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="@string/add_routine_button"/>
+            android:text="@string/add_routine_button"/>
+
+    </LinearLayout>
+
+    <!-- The "Empty RoutineDay State Layer" that will be displayed when we have no routine days in a routine -->
+    <LinearLayout
+        android:id="@+id/recent_workouts_empty_routinedays_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@color/mediumLightGray">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="30dp"
+            android:text="@string/empty_routinedays_text"
+            android:singleLine="false"
+            android:textSize="20sp"
+            android:textAlignment="center"/>
 
     </LinearLayout>
 

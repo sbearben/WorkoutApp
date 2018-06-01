@@ -34,6 +34,10 @@ import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
         )
 public class Exercise implements Copyable<Exercise> {
 
+    @RestrictTo(LIBRARY_GROUP)
+    @StringDef({REPPED, TIMED})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface ExerciseType {}
     public static final String REPPED = "Repped";
     public static final String TIMED = "Timed";
 
@@ -44,7 +48,6 @@ public class Exercise implements Copyable<Exercise> {
     @StringDef({NEWLINE_NORMAL, NEWLINE_HTML, NEWLINE_NULL})
     @Retention(RetentionPolicy.SOURCE)
     public @interface NewlineCharacter {}
-
     public static final String NEWLINE_NORMAL = "\n";
     public static final String NEWLINE_HTML = "<br/>";
     public static final String NEWLINE_NULL = "";

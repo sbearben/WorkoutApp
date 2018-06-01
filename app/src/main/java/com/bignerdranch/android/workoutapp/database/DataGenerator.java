@@ -92,7 +92,7 @@ public class DataGenerator {
                 routineDay.setId(1000 + total);
                 routineDay.setRoutineId(routine.getId());
                 routineDay.setDayNumber(i+1);
-                routineDay.setDate(null);
+                routineDay.setDate(RoutineDay.DATE_NULL);
                 routineDay.setCompleted(false);
                 routineDay.setTemplate(true);
 

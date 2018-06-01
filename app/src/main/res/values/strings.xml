@@ -13,7 +13,9 @@
     <string name="menu_history">History</string>
 
     <!-- RecentWorkoutsFragment -->
+    <string name="actionbar_recent_workouts_subtitle">Home</string>
     <string name="empty_routines_text">You have not created any routines</string>
+    <string name="empty_routinedays_text">You have no completed or ongoing workout days in the selected routine</string>
     <string name="add_routine_button">Create first routine</string>
     <string name="new_routineday_dialog_title">Start new workout day?</string>
     <string name="new_routineday_dialog_message">There is an ongoing workout. Continuing without saving will override it.</string>
@@ -27,7 +29,7 @@
 
     <!-- RoutineHistoryFragment -->
     <string name="actionbar_routine_history_subtitle">History - %1$s</string>
-    <string name="actionbar_routine_history_subtitle_noroutine">History</string>
+    <string name="actionbar_routine_history_subtitle_empty">History</string>
 
     <!-- RoutineDayPageFragment -->
     <string name="routineday_done_text">Done</string>

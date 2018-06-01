@@ -29,20 +29,27 @@ public abstract class Set<T> implements Copyable<Set> {
     private T actualMeasurement;
 
 
-    public static Set newInstance(String type) {
-        switch(type) {
+    public static Set newDefaultInstance(int exerciseId, @Exercise.ExerciseType String exerciseType, int setNumber, int targetWeight) {
+        switch(exerciseType) {
             case Exercise.REPPED:
-                return new ReppedSet();
+                return ReppedSet.createNewDefaultSet(exerciseId, setNumber, targetWeight);
             case Exercise.TIMED:
-                return new TimedSet();
+                return TimedSet.createNewDefaultSet(exerciseId, setNumber, targetWeight);
             default:
                 return null;
         }
     }
 
-    /*public Set (int setNumber, int targetWeight) {
-        this (UUID.randomUUID(), setNumber, targetWeight);
-    }*/
+    public static Set newDefaultInstance(@Exercise.ExerciseType String exerciseType, int setNumber, int targetWeight) {
+        switch(exerciseType) {
+            case Exercise.REPPED:
+                return ReppedSet.createNewDefaultSet(setNumber, targetWeight);
+            case Exercise.TIMED:
+                return TimedSet.createNewDefaultSet(setNumber, targetWeight);
+            default:
+                return null;
+        }
+    }
 
     public Set() {
     }
@@ -64,6 +71,12 @@ public abstract class Set<T> implements Copyable<Set> {
         this.actualMeasurement = actualMeasurement;
     }
 
+    public Set (int setNumber, int targetWeight, T targetMeasurement, T actualMeasurement) {
+        this.setNumber = setNumber;
+        this.targetWeight = targetWeight;
+        this.targetMeasurement = targetMeasurement;
+        this.actualMeasurement = actualMeasurement;
+    }
 
     public int getId() {
         return this.id;

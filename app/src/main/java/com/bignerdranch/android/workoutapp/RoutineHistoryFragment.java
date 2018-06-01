@@ -22,7 +22,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.bignerdranch.android.workoutapp.global.BasicApp;
@@ -42,16 +44,27 @@ public class RoutineHistoryFragment extends Fragment {
 
     private static final String TAG = "RoutineHistoryFragment";
 
+    private static final String DIALOG_NEW_ROUTINE = "DialogNewRoutine";
+    private static final int REQUEST_NEW_ROUTINE = 0;
+
+    // Used to keep track of the screen width/height of the user's device
+    private int mScreenWidth;
+    private int mScreenHeight;
+
     private DataRepository mDataRepository;
 
     private RecyclerView mRoutineDayRecyclerView;
     private RoutineDayAdapter mAdapter;
 
+    private View mEmptyRoutinesView;
+    private Button mEmptyRoutinesButton;
+    private View mEmptyRoutineDaysView;
+
     private Routine mRoutine;
     private int mRoutineId;
+    private String mRoutineName;
     private List<RoutineDay> mRoutineDays;
     private ArrayList<Integer> mTemplateDayIds;
-
 
 
     public static RoutineHistoryFragment newInstance() {
@@ -61,6 +74,12 @@ public class RoutineHistoryFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // This code is used to get the screen dimensions of the user's device
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        mScreenWidth = displayMetrics.widthPixels;
+        //mScreenHeight = displayMetrics.heightPixels;
 
         // Get our DataRepository so that we can easily execute our Db queries
         Application application = getActivity().getApplication();
@@ -73,11 +92,46 @@ public class RoutineHistoryFragment extends Fragment {
 
         // Get the currently active Routine ID (selected on the Home tab/RecentWorkoutsFragment)
         mRoutineId = SharedPreferences.getActiveRoutineId(getActivity());
+        mRoutineName = SharedPreferences.getActiveRoutineName(getActivity());
+
+        // Get the Empty Routines view
+        mEmptyRoutinesView = (View) v.findViewById(R.id.routine_history_empty_routines_view);
+        // Initially hide the emptyRoutinesView
+        mEmptyRoutinesView.setVisibility(View.GONE);
+
+        // Inflate no routines button
+        mEmptyRoutinesButton = (Button) v.findViewById(R.id.routine_history_empty_routines_button);
+        mEmptyRoutinesButton.setOnClickListener((View view) -> {
+            FragmentManager manager = getFragmentManager();
+            NewRoutineFragment dialog = NewRoutineFragment.newInstance();
+
+            dialog.setTargetFragment (RoutineHistoryFragment.this, REQUEST_NEW_ROUTINE);
+            dialog.show (manager, DIALOG_NEW_ROUTINE);
+        });
+        mEmptyRoutinesButton.setVisibility(View.GONE);
+
+        // Get the Empty RoutineDays view
+        mEmptyRoutineDaysView = (View) v.findViewById(R.id.routine_history_empty_routinedays_view);
+        // Initially hide the emptyRoutinesView
+        mEmptyRoutineDaysView.setVisibility(View.GONE);
 
         mRoutineDayRecyclerView = (RecyclerView) v.findViewById(R.id.routine_history_recycler_view);
         // When setting the layout manager we set reverseLayout = true in the LinearLayoutManager constructor so that we start at the end of the 'list'
         mRoutineDayRecyclerView.setLayoutManager (new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, true));
         mRoutineDayRecyclerView.addItemDecoration (new DividerItemDecoration(getActivity(), LinearLayoutManager.HORIZONTAL));
+
+        /* onGlobalLayoutListener fires an event whenever a layout pass happens (p. 316 in BNR)
+           - need this because we want the height of the Fragment (not the height of the device's screen)
+           - on StackOverflow: https://stackoverflow.com/a/25397094/7648952 */
+        v.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // Ensure you call it only once :
+                v.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                v.post(() -> mScreenHeight = v.getHeight()); // Not sure why using post here, but a solution on StackOverflow did
+                //mScreenHeight = v.getHeight();
+            }
+        });
 
         return v;
     }
@@ -86,7 +140,7 @@ public class RoutineHistoryFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        // Setup our custom toolbar (also doing this in onPostExecute() in the Async now since the subtitle we're setting on the toolbar requires mRoutine to be instantiated)
+        // Setup our custom toolbar (doing this in onPostExecute() in the Async now since the subtitle we're setting on the toolbar requires mRoutine to be instantiated)
         init_toolbar(getActivity());
     }
 
@@ -94,49 +148,53 @@ public class RoutineHistoryFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
+        // Get the active routineId and routine name from the Preference Manager
+        mRoutineId = SharedPreferences.getActiveRoutineId(getActivity());
+        mRoutineName = SharedPreferences.getActiveRoutineName(getActivity());
+        // Determine the visibility of the Empty Routines views
+        setEmptyRoutineViewsVisibility(mRoutineId);
+
+        // Execute the Async to create the Routine object
         new CreateRoutineTask(mRoutineId).execute();
     }
 
     // Creates a full Routine object if all the required data exists
     private Routine createRoutineObject (int routineId) {
         Routine activeRoutine = null;
+        activeRoutine = mDataRepository.loadRoutine(routineId);
 
-        // Check that routineId is not set to SharedPreferences.NO_ACTIVE_ROUTINE
-        if (routineId != SharedPreferences.NO_ACTIVE_ROUTINE) {
-            activeRoutine = mDataRepository.loadRoutine(routineId);
+        // Get all the RoutineDay in the Routine
+        List<RoutineDay> routineDays = mDataRepository.loadAllCompletedRoutineDaysInRoutine(routineId);
+        if (activeRoutine == null || routineDays == null) {
+            return null;
+        }
+        activeRoutine.addRoutineDays(routineDays);
 
-            // Get all the RoutineDay in the Routine
-            List<RoutineDay> routineDays = mDataRepository.loadAllCompletedRoutineDaysInRoutine(routineId);
-            if (routineDays == null) {
+        // Get the Exercises for each RoutineDay
+        for (RoutineDay routineDay : activeRoutine.getRoutineDays()) {
+            // Get first three exercises for each day
+            List<Exercise> dayExercises = mDataRepository.loadAllExercisesInRoutineDay(routineDay.getId());
+            if (dayExercises == null) {
                 return null;
             }
-            activeRoutine.addRoutineDays(routineDays);
+            routineDay.addExercises(dayExercises);
 
-            // Get the Exercises for each RoutineDay
-            for (RoutineDay routineDay : activeRoutine.getRoutineDays()) {
-                // Get first three exercises for each day
-                List<Exercise> dayExercises = mDataRepository.loadAllExercisesInRoutineDay(routineDay.getId());
-                if (dayExercises == null) {
+            // Get sets in Exercises
+            for (Exercise exercise : routineDay.getExercises()) {
+                List<Set> exerciseSets;
+                if (exercise.getType().equals(Exercise.REPPED)) {
+                    // Solution to cast list of subtype List<ReppedSet> to list of supertype List<Set> found here:
+                    // - https://stackoverflow.com/a/933600/7648952
+                    exerciseSets = (List<Set>)(List<?>) mDataRepository.loadAllReppedExerciseSets(exercise.getId());
+                }
+                else {
+                    exerciseSets = (List<Set>)(List<?>) mDataRepository.loadAllTimedExerciseSets(exercise.getId());
+                }
+
+                if (exerciseSets == null) {
                     return null;
                 }
-                routineDay.addExercises(dayExercises);
-
-                // Get sets in Exercises
-                for (Exercise exercise : routineDay.getExercises()) {
-                    List<Set> exerciseSets;
-                    if (exercise.getType().equals(Exercise.REPPED)) {
-                        // Solution to cast list of subtype List<ReppedSet> to list of supertype List<Set> found here:
-                        // - https://stackoverflow.com/a/933600/7648952
-                        exerciseSets = (List<Set>) (List<?>) mDataRepository.loadAllReppedExerciseSets(exercise.getId());
-                    } else {
-                        exerciseSets = (List<Set>) (List<?>) mDataRepository.loadAllTimedExerciseSets(exercise.getId());
-                    }
-
-                    if (exerciseSets == null) {
-                        return null;
-                    }
-                    exercise.addSets(exerciseSets);
-                }
+                exercise.addSets(exerciseSets);
             }
         }
 
@@ -149,16 +207,18 @@ public class RoutineHistoryFragment extends Fragment {
 
         // Restore the default toolbar
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
-
-        if (mRoutine == null)
-            actionBar.setSubtitle(R.string.actionbar_routine_history_subtitle_noroutine);
+        /* If we end up storing the activeRoutineName in the PreferenceManager we can 1) uncomment out init_toolbar() in onActivityCreated(..)
+           and 2) we then have to throw an if statement here to check if mRoutineName is empty (""), in which case we should set the subtitle
+           to be another string resource (which will be the same as now, except with the formatter and hyphen removed) */
+        if (!mRoutineName.equals(""))
+            actionBar.setSubtitle(getString(R.string.actionbar_routine_history_subtitle, mRoutineName));
         else
-            actionBar.setSubtitle(getString(R.string.actionbar_routine_history_subtitle, mRoutine.getName()));
+            actionBar.setSubtitle(R.string.actionbar_routine_history_subtitle_empty);
     }
 
     public void updateUI() {
         List<RoutineDay> routineDays = new ArrayList<>();
-        if (mRoutine != null) {
+        if (mRoutine != null) { // was previously if mRoutine.getRoutineDays() != null
             routineDays = mRoutine.getRoutineDays();
         }
 
@@ -174,25 +234,47 @@ public class RoutineHistoryFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onActivityResult (int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+
+        if (requestCode == REQUEST_NEW_ROUTINE) {
+            String routineName = (String) data.getSerializableExtra(NewRoutineFragment.EXTRA_ROUTINE_NAME);
+            int numberDays = (int) data.getSerializableExtra(NewRoutineFragment.EXTRA_ROUTINE_DAYS);
+
+            Routine routine = new Routine();
+            routine.setName(routineName);
+            routine.setDateCreated(new Date());
+
+            new RoutineListFragment.InsertNewRoutineTask(routine, numberDays, mDataRepository, getActivity(), this, 0).execute();
+        }
+    }
+
     private class RoutineDayHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
+        private final int NUMBER_VIEWHOLDERS_FILL_WIDTH = 3;
         private TextView mDateTextView;
         private TextView mDetailsTextView;
 
         private RoutineDay mRoutineDay;
+        private int mHolderWidth;
 
 
         public RoutineDayHolder (LayoutInflater inflater, ViewGroup parent) {
             super (inflater.inflate (R.layout.list_item_routine_history, parent, false));
 
             // This code is used to get the screen dimensions of the user's device
-            DisplayMetrics displayMetrics = new DisplayMetrics();
-            getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-            int width = displayMetrics.widthPixels;
+            /*Point size = new Point();
+            WindowManager w = getActivity().getWindowManager();
+            w.getDefaultDisplay().getSize(size);
+            int holderWidth = size.x / Math.max (1, Math.min(mAdapter.getItemCount(), NUMBER_VIEWHOLDERS_FILL_WIDTH));*/
+            mHolderWidth = mScreenWidth / Math.max (1, Math.min(mAdapter.getItemCount(), NUMBER_VIEWHOLDERS_FILL_WIDTH));
 
             itemView.setOnClickListener (this);
             // Set the ViewHolder width to be a third of the screen size, and height to wrap content
-            itemView.setLayoutParams(new RecyclerView.LayoutParams(width/3, RecyclerView.LayoutParams.WRAP_CONTENT));
+            itemView.setLayoutParams(new RecyclerView.LayoutParams(mHolderWidth, RecyclerView.LayoutParams.WRAP_CONTENT));
 
             mDateTextView = (TextView) itemView.findViewById(R.id.routine_history_routineday_date);
             mDetailsTextView = (TextView) itemView.findViewById(R.id.routine_history_routineday_details);
@@ -227,6 +309,12 @@ public class RoutineHistoryFragment extends Fragment {
             }
 
             mDetailsTextView.setText(Html.fromHtml(sb.toString()));
+
+            // If the ViewHolder height of the wrapped content is less than the screen height we want the ViewHolder's height to be the screen height
+            itemView.measure(RecyclerView.LayoutParams.WRAP_CONTENT, RecyclerView.LayoutParams.WRAP_CONTENT);
+            Log.i (TAG, "Measured height: " + itemView.getMeasuredHeight() + "  Screen height: " + mScreenHeight);
+            if (itemView.getMeasuredHeight() < mScreenHeight)
+                itemView.setLayoutParams(new RecyclerView.LayoutParams(mHolderWidth, mScreenHeight));
         }
 
         // Called when the user clicks on one of the items in the list (held in itemView, which is the View for the entire row)
@@ -267,6 +355,10 @@ public class RoutineHistoryFragment extends Fragment {
         public void setRoutineDays (List<RoutineDay> routineDays) {
             mRoutineDays = routineDays;
         }
+
+        public List<RoutineDay> getRoutineDays() {
+            return mRoutineDays;
+        }
     }
 
     // Create a background thread to perform the queries to create the Routine object
@@ -295,14 +387,40 @@ public class RoutineHistoryFragment extends Fragment {
             mRoutine = routine; // Assign the routine to our global variable mRoutine so we can use outside the AsyncTask
             RoutineHistoryFragment.this.mTemplateDayIds = mTemplateDayIds;
 
+            // Determine of the visibility of the empty routineDays view (only if mRoutine != null since that means a Routine exists)
+            if (mRoutine != null)
+                setEmptyRoutineDaysViewsVisibility(mRoutine.getRoutineDays());
             updateUI();
+
             // Put this in a try-catch block just since I'm not sure if getActivity() will return non-null since this Async is getting fired off in onResume()
-            try {
+            /*try {
                 init_toolbar(getActivity());
             }
             catch (Exception e) {
                 Log.i(TAG, e.getMessage());
-            }
+            }*/
         }
+    }
+
+    // Determine the visibility of the Empty Routines views based on the given RoutineId
+    private void setEmptyRoutineViewsVisibility (int routineId) {
+        if (routineId != SharedPreferences.NO_ACTIVE_ROUTINE) {
+            mEmptyRoutinesView.setVisibility(View.GONE);
+            mEmptyRoutinesButton.setVisibility(View.GONE);
+            //mFloatingActionButton.setVisibility(View.VISIBLE);
+        }
+        else {
+            mEmptyRoutinesView.setVisibility(View.VISIBLE);
+            mEmptyRoutinesButton.setVisibility(View.VISIBLE);
+            //mFloatingActionButton.setVisibility(View.GONE);
+        }
+    }
+
+    // Determine the visibility of the Empty Routines views based on the routineDays we load in createRoutineObject
+    private void setEmptyRoutineDaysViewsVisibility (List<RoutineDay> routineDays) {
+        if (routineDays.size() == 0)
+            mEmptyRoutineDaysView.setVisibility(View.VISIBLE);
+        else
+            mEmptyRoutineDaysView.setVisibility(View.GONE);
     }
 }

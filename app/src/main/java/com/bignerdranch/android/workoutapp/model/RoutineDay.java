@@ -30,6 +30,8 @@ import static android.arch.persistence.room.ForeignKey.RESTRICT;
         )
 public class RoutineDay implements Copyable<RoutineDay> {
 
+    public static final Date DATE_NULL = null;
+
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = RoutineDayTable.Cols.ROUTINE_DAY_ID)
     private int id;

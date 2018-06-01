@@ -351,7 +351,16 @@ public abstract class RoutineDayPageFragment extends Fragment {
                 exercise.setType(Exercise.REPPED);
 
             // Use an Async to insert our new Exercise, which will return its ID, the use that ID when we create its Sets in postExecute()
-            new WriteNewExerciseTask(exercise).execute();
+            //new WriteNewExerciseTask(exercise).execute();
+
+            for (int i=0; i<exercise.getTargetNumberSets(); i++) {
+                Set exerciseSet = Set.newDefaultInstance(exercise.getType(), i+1, 0);
+                exercise.addSet((Set) exerciseSet);
+                Log.i(TAG, "Repped set added: " + i);
+            }
+
+            mRoutineDay.addExercise(exercise);
+            updateUI();
         }
         else if (requestCode == REQUEST_ROUTINEDAY_DATE) {
             Date date = (Date) data.getSerializableExtra (DatePickerFragment.EXTRA_DATE);
@@ -479,6 +488,7 @@ public abstract class RoutineDayPageFragment extends Fragment {
             for (int i=0; i < Exercise.MAX_SETS; i++) {
                 final int i_copy = i; // // Needed to create this variable because can'tS use 'i' in the onClickListeners since 'i' must be final
                 boolean setExists = mExercise.getSets().size() > i; // boolean to check if the set exists
+                Log.i (TAG, "Set exists: " + setExists + "  Sets size: " + mExercise.getSets().size());
                 ExerciseViews.SetViews setViews = mExerciseViews.mSetViews.get(i);
 
                 /* Check if the relevant exercise set exists, if it doesn't we disable the "set" (which includes button and text) and display a dash for the
@@ -711,10 +721,11 @@ public abstract class RoutineDayPageFragment extends Fragment {
         protected void onPostExecute (Long exerciseId) {
             // Here we are creating the Sets for the new exercise, using the ID that was just returned to us by the Db insert query
             mExercise.setId(exerciseId.intValue());
-            if (mExercise.getType().equals(Exercise.REPPED)) {
+            /*if (mExercise.getType().equals(Exercise.REPPED)) {
                 for (int i=0; i<mExercise.getTargetNumberSets(); i++) {
                     ReppedSet reppedSet = new ReppedSet (mExercise.getId(), i+1, 0, 8, ReppedSet.ACTUAL_REPS_NULL);
                     mExercise.addSet((Set) reppedSet);
+                    Log.i (TAG, "Repped set added: " + i);
                 }
             }
             else {
@@ -724,6 +735,11 @@ public abstract class RoutineDayPageFragment extends Fragment {
                             null); // TODO: need to add equivalent to ACTUAL_REPS_NULL to TimedSet
                     mExercise.addSet((Set) timedSet);
                 }
+            }*/
+            for (int i=0; i<mExercise.getTargetNumberSets(); i++) {
+                Set exerciseSet = Set.newDefaultInstance(mExercise.getId(), mExercise.getType(), i+1, 0);
+                mExercise.addSet((Set) exerciseSet);
+                Log.i(TAG, "Repped set added: " + i);
             }
 
             mRoutineDay.addExercise(mExercise);
