@@ -9,6 +9,9 @@ The UI is similar to the SL 5x5 app that is available for both Android and iOS. 
 Clone the repository and import the root folder into your IDE (tested on Android Studio), then run project.
 The app was created with a **Min SDK Version of 19** and **Target SDK Version of 27**.
 
+### Data Generation
+There is code within the buildatabase(..) method of database/AppDatabase.java to prepopulate the database. If you'd like to use it, uncomment the section of code where the comment "Generate the data for pre-population" is. AppDatabase contains a MutableLiveData boolean field that RecentWorkoutsFragment.java observes. The MutableLiveData field posts a true value once the database has been created, at which point RecentWorkoutsFragment will refresh its Views.
+
 ### Built With
 The app is built using an MVC architecture, and uses [Room Persistence Library](https://developer.android.com/topic/libraries/architecture/room) to manage the database.
 
